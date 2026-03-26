@@ -1,0 +1,16 @@
+path: D:/OceanEdge_Group/Marine-Debris-Detection-main/mask_bbox_rescue_split_features
+train: train/images
+val: val/images
+test: test/images
+
+# 5 spectral channels + 3 indices + 5 GLCM textures = 13 channels
+channels: 13
+
+names:
+  0: Marine_Debris
+  1: Dense_Sargassum
+  2: Sparse_Sargassum
+  3: Natural_Organic
+  4: Ship
+  5: Foam
+  6: Wake

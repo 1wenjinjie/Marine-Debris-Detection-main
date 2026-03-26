@@ -1,0 +1,296 @@
+海洋垃圾检测任务安排 
+
+一、核心数据集（主用）： 
+
+✅ MARIDA Dataset（Sentinel-2） 
+
+主数据集：https://zenodo.org/records/5151941 
+
+（1）含多种标签（Marine debris、Sargassum、Foam、Natural organic material 
+
+等）。 
+
+（2）分辨率高（10–60 m），适合中尺度漂浮垃圾检测。 
+
+（3）可直接与卫星遥感特征结合（如 NDWI、NIR 通道），方便构建模型
+
+输入。 
+
+（4）最适合做  YOLO/SegFormer  等模型的主任务训练 
+
+✅用  MARIDA  做主要训练和预期结果展示； 
+
+（1）可在论文中强调“基于卫星多光谱影像的海洋垃圾检测” 
+
+（2）体现遥感+AI 结合。 
+
+二、辅助数据集（可选用于增强或迁移）： 
+
+✅ Ocean Waste Detection (Roboflow) 
+
+辅助数据集：https://universe.roboflow.com/khrissabdelaadim/ocean-waste-detection 
+
+（1）数据来自无人机或低空航拍，画面更清晰、目标更大。 
+
+（2）可用来微调（fine-tune）模型，提升小目标检测能力。 
+
+（3）可用作  跨域泛化验证（domain adaptation）  实验部分。 
+
+✅建议： 
+
+不必全部训练，可选取部分  UAV  数据进行迁移学习，增加论文亮点： 
+
+ 
+ 
+ 
+“To evaluate model generalization across different image domains (satellite vs UAV)...” 
+
+三、3 个月任务安排 
+
+✅  主题：基于改进 YOLOv8 的海洋漂浮垃圾检测与遥感监测研究 
+
+（1）研究目标：   
+
+本研究旨在构建一种基于改进 YOLOv8 的海洋漂浮垃圾自动检测模型，利
+
+用 Sentinel-2 卫星影像实现海洋表层垃圾的高精度识别与空间分布分析。通过引
+
+入注意力机制与多尺度特征融合，提升在复杂海面背景下的小目标检测性能，为
+
+海洋环境监测与污染治理提供智能化技术支撑。 
+
+（2）数据来源与预处理 
+
+1）数据来源：MARIDA  Dataset  (Sentinel-2)，来自 Zenodo 的公开数据集
+
+（https://zenodo.org/records/5151941），包含漂浮垃圾、藻类、泡沫、水体等
+
+多类别标注影像。可选增强集：Ocean Waste Detection (Roboflow)，用于跨域
+
+微调。 
+
+2）预处理流程： 
+
+①影像裁剪与统一尺寸：裁剪为 512×512 像素，保证模型输入一致。 
+
+②通道选择与合成：提取 Sentinel-2 的 RGB + NIR 四个波段，构建四通道输
+
+入。 
+
+③数据增强：随机旋转、亮度扰动、色彩抖动、仿射变换。 
+
+④标注转换：将 GeoJSON 或 COCO 格式转换为 YOLO 格式（txt）。 
+
+⑤划分比例：训练集 70%，验证集 20%，测试集 10%  。 
+
+（3）模型结构设计 
+
+1）基础框架：采用  YOLOv8n/m/s（版本根据算力选择，尽量选择最新版本）
+
+作为主干网络。 
+
+2）改进思路 
+
+ 
+①注意力机制嵌入 
+
+在主干网络 C2f 模块中嵌入  ECA（Efficient Channel Attention）  或  CBAM
+
+（Convolutional Block Attention Module）： 
+
+F′=CBAM(F)=σ(MLP(AvgPool(F)))⊙F 
+
+以增强特征层的目标显著性，提升漂浮垃圾与波纹背景的区分能力。 
+
+②多尺度特征融合优化 
+
+引入改进的  Bi-FPN (Bidirectional Feature Pyramid Network)，实现跨层双向
+
+信息传递： 
+
+其中 wi 学习权重。 
+
+③损失函数优化 
+
+Pi=w1⋅Pi−1+w2⋅Pi+w3⋅Pi+1 
+
+采用  EIoU（Extended IoU）  取代原 CIoU，以提高边框拟合精度： 
+
+（4）模型训练与实验设计 
+
+1）超参数配置 
+
+参数 
+
+输入尺寸 
+
+batch size 
+
+optimizer 
+
+epochs 
+
+augment 
+
+pretrained 
+
+值 
+
+640×640 
+
+16 
+
+AdamW 
+
+说明 
+
+可根据 GPU 调整至 1024 
+
+视显存而定 
+
+学习率 0.001 
+
+100–200 
+
+Early stopping 
+
+True 
+
+COCO 
+
+图像增强启用 
+
+迁移学习起点 
+
+ 
+ 
+2）对比实验 
+
+①Baseline：原始 YOLOv8 
+
+②改进模型 1：YOLOv8 + CBAM 
+
+③改进模型 2：YOLOv8 + Bi-FPN 
+
+④改进模型 3：YOLOv8 + CBAM + Bi-FPN + EIoU 
+
+3）对比指标包括： 
+
+①平均精度（mAP@0.5、mAP@0.5:0.95） 
+
+②Precision / Recall / F1-score 
+
+③FPS（实时性） 
+
+（5）结果分析与可视化 
+
+1）定量分析 
+
+①绘制  Precision-Recall  曲线与  mAP  曲线。 
+
+②对比不同模型的性能提升幅度。 
+
+2）空间可视化 
+
+①使用检测结果生成漂浮垃圾分布热力图（可基于经纬度反投影）。 
+
+②叠加  CMEMS  海流场数据，展示漂浮路径趋势。 
+
+3）结果展示形式 
+
+①模型结构与流程类 
+
+图 1：模型总体框架与流程图（展示 YOLOv8 主干、改进模块（CBAM/Bi-
+
+FPN/EIoU）、以及从输入数据到输出检测结果的完整流程。体现算法创新逻辑
+
+与端到端架构清晰度。） 
+
+ 
+ 
+图 2：模块细节图（CBAM 或 Bi-FPN 结构）（在附录或方法部分展示具体
+
+改进模块的结构示意，标注通道注意力、空间注意力或多尺度特征融合路径。体
+
+现模型可解释性与创新设计。） 
+
+②性能评估与对比类 
+
+图 3：mAP 对比曲线（不同改进模型）（横轴 IoU 阈值，纵轴 mAP 值，展
+
+示原 YOLOv8 与改进版本的性能差异。） 
+
+图 4：Precision–Recall 曲线（对比不同模型在垃圾类检测上的 Precision 与
+
+Recall，体现检测平衡性能。） 
+
+图 5：消融实验柱状图（Ablation Study）（展示引入 CBAM、Bi-FPN、EIoU 前
+
+后的 mAP、F1、FPS 等变化，用分组柱状图体现性能提升。例如：YOLOv8 baseline、
+
++CBAM、+BiFPN、+CBAM+EIoU。） 
+
+图 6：检测速度–精度权衡图（Trade-off）（横轴 FPS（推理速度），纵轴 mAP，
+
+标注不同模型版本点位。体现模型轻量化优化与实时性优势。） 
+
+③特征与可视化类 
+
+图 7：特征热力图（Feature Map Visualization）（展示模型在检测前后层对
+
+漂浮垃圾的响应热图，可采用 Grad-CAM 方法。说明模型能关注到正确区域，提
+
+升解释性。） 
+
+图 8：检测结果可视化（Detection Overlay）（随机选取数张 Sentinel-2 图像，
+
+叠加检测框与真实标注框，展示检测效果与漏检/误检情况。可选展示对比：
+
+YOLOv8 baseline vs  改进模型。） 
+
+④空间与时空分析类 
+
+      图 9：漂浮垃圾空间分布热力图（Spatial Distribution Map）（利用经纬度反
+
+投影展示不同海区垃圾检测密度（像元数或面积权重），可使用 Cartopy 或
+
+Matplotlib 绘制。说明模型不仅能检测，还能揭示海洋污染空间格局。） 
+
+图 10：季节或时间序列变化图（Temporal Variation）（若有多时相数据，可
+
+统计漂浮垃圾检测数量随月份或季节的变化趋势。展示检测结果与环境动力因子
+
+（风速、洋流）之间的联系。） 
+
+图 11：漂浮路径示意（Optional）（结合 CMEMS 流速数据，绘制垃圾分布
+
+随表层流场的漂移方向箭头图。拓展论文物理意义，提高综合性。） 
+
+⑤统计与定量表格补充 
+
+表 1 
+
+表 2 
+
+表 3 
+
+表 4 
+
+模型性能对比（mAP、Precision、
+
+Recall、FPS） 
+
+消融实验结果（不同模块组合性
+
+能提升） 
+
+不同场景下检测表现（海岸区/近
+
+岸/远洋） 
+
+检测数量与风速/流速/区域污染
+
+指标的统计相关性 
+
+ 
+

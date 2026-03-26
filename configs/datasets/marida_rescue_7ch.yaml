@@ -1,0 +1,21 @@
+# MARIDA mask bbox rescue dataset with 7-channel knowledge inputs
+# Points to the knowledge-augmented .npy caches in mask_bbox_rescue_split
+
+path: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/mask_bbox_rescue_split
+train: train.txt
+val: val.txt
+test: test.txt
+
+nc: 7
+names:
+  - Marine_Debris
+  - Dense_Sargassum
+  - Sparse_Sargassum
+  - Natural_Organic
+  - Ship
+  - Foam
+  - Wakes
+channels: 7
+
+task: detect
+mode: train

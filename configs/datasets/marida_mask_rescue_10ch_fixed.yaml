@@ -1,0 +1,32 @@
+﻿# MARIDA 10-Channel Spectral Configuration (CORRECTED)
+# 基于mask_bbox_rescue_split的真实类别定义
+
+path: mask_bbox_rescue_10ch_fixed
+train: train/images
+val: val/images
+test: test/images
+
+# 真实类别 (nc=6, 与7ch baseline保持一致)
+names:
+  0: Marine_Debris
+  1: Dense_Sargassum
+  2: Sparse_Sargassum
+  3: Natural_Organic
+  4: Ship
+  5: Foam
+
+nc: 6  # 修正: 实际只有6个类别
+ch: 10
+channels: 10
+
+# K-Means优化锚框 (基于真实bbox分布)
+anchors:
+  - [0.0431, 0.0283]
+  - [0.0283, 0.0548]
+  - [0.0449, 0.0444]
+  - [0.0766, 0.0354]
+  - [0.0522, 0.0613]
+  - [0.0759, 0.0561]
+  - [0.0805, 0.1042]
+  - [0.1617, 0.0926]
+  - [0.1875, 0.3529]

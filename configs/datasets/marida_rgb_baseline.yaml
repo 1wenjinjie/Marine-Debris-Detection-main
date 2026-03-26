@@ -1,0 +1,17 @@
+# MARIDA Marine Debris Detection Dataset - RGB Baseline (3 channels)
+# YOLOv11 Configuration for Ablation Study
+
+# Paths (relative to this file)
+path: D:\OceanEdge_Group\Marine-Debris-Detection-main\MARIDA_YOLO_6band_split
+train: train/images
+val: val/images
+test: test/images
+
+# Classes
+nc: 3  # number of classes
+names: ['Marine_Debris', 'Floating_Object', 'Ship_Wake']
+channels: 3  # RGB only (will be sliced from 6-channel .npy files)
+
+# Additional info
+task: detect
+mode: train

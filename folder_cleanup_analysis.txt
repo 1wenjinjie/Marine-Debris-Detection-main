@@ -1,0 +1,87 @@
+﻿根目录文件夹分类分析 (共66个文件夹)
+=================================================
+
+【1. 标准项目结构 - 必须保留 (8个)】
+─ configs/          (30 files, 0.02MB)    - YAML配置文件
+ data/             (8785 files, 16.9GB)  - 数据集主目录
+ docs/             (19 files, 0.08MB)    - 项目文档
+ experiments/      (4083 files, 1.34GB)  - 实验结果
+ results/          (10 files, 0.55MB)    - 结果输出
+ scripts/          (109 files, 0.45MB)   - 脚本工具
+ src/              (0 files, 空)         - 源代码模块
+ tests/            (2 files, 0.02MB)     - 测试代码
+
+【2. 开发环境 - 必须保留 (5个)】
+ .venv/            (33444 files, 1.12GB) - Python虚拟环境
+ .vscode/          (2 files, 0.001MB)    - VSCode配置
+ .idea/            (7 files, 0.002MB)    - PyCharm配置
+ ultralytics_plugins/ (13 files, 0.16MB) - 自定义训练器
+ __pycache__/      (20 files, 0.16MB)    - Python缓存
+
+【3. 临时备份 - 可以删除 (1个)】
+ .backup/          (34 files, 17MB)      - 刚才清理的备份文件
+
+【4. 废弃数据集 - 应该删除 (27个, ~13GB)】
+MARIDA_6band_256/                (2762 files, 2.42GB) - 已被data/processed替代
+MARIDA_rgb_256/                  (2762 files, 1.39GB) - 已被data/processed替代
+MARIDA_YOLO_6band_png/           (1381 files, 268MB)  - PNG格式已废弃
+MARIDA_YOLO_6band_png_annotated/ (1381 files, 453MB)  - PNG格式已废弃
+MARIDA_YOLO_Enriched/            (929 files, 1.28GB)  - 旧版Enriched数据
+MARIDA_YOLO_Enriched_Dilated/    (919 files, 1.26GB)  - 旧版Dilated数据
+MARIDA_YOLO_Enriched_Dilated_split/ (921 files, 1.26GB) - 已被split_features替代
+MARIDA_YOLO_Enriched_Filtered/   (375 files, 515MB)   - 旧版Filtered数据
+MARIDA_YOLO_Perfect/             (2764 files, 2.08GB) - 旧版Perfect数据
+mask_bbox_preview/               (1518 files, 427MB)  - 预览数据,已无用
+mask_bbox_rescue_10ch_fixed/     (1028 files, 1.29GB) - 已被data/processed替代
+mask_bbox_rescue_augmented/      (3540 files, 2.82GB) - 增强数据已移至data/
+mask_bbox_rescue_rebalanced/     (1350 files, 1.18GB) - 重平衡数据已废弃
+mask_bbox_rescue_split_features/ (1033 files, 1.67GB) - 已被data/processed替代
+mask_bbox_rescue_split_swirfix/  (1033 files, 900MB)  - SWIR修复版已废弃
+dataset_v1_loose_baseline/       (1037 files, 332MB)  - v1版本已被v2替代
+shapefile_yolo_export/           (1621 files, 36MB)   - Shapefile导出已废弃
+yolo_output_png/                 (40 files, 1.3MB)    - PNG输出已废弃
+annotation_validation/           (3 files, 1MB)       - 验证结果已移至scripts/
+manual_preview_samples/          (4 files, 2.3MB)     - 手动预览已无用
+multispectral_analysis/          (3 files, 3.1MB)     - 已移至docs/analysis/
+multispectral_optimization/      (15 files, 21.6MB)   - 已移至docs/analysis/
+multispectral_verification/      (6 files, 26.5MB)    - 已移至docs/analysis/
+spectral_analysis/               (3 files, 0.81MB)    - 已移至docs/analysis/
+spectral_analysis_results/       (2 files, 0.10MB)    - 已移至results/
+datasets/                        (3 files, 0.02MB)    - 旧版数据集配置
+trainers/                        (1 file, 0.002MB)    - 已移至ultralytics_plugins/
+
+【5. 废弃实验结果 - 应该删除 (17个, ~170MB)】
+marida_enriched_runs/            (170 files, 93MB)    - Enriched实验已结束
+marida_overfit_runs/             (21 files, 12MB)     - 过拟合测试已结束
+marida_perfect_runs/             (86 files, 21MB)     - Perfect实验已结束
+comparison_results/              (31 files, 3.7MB)    - 对比结果已移至results/
+error_analysis/                  (36 files, 4.6MB)    - 错误分析已移至results/
+archives/                        (7 files, 5.6MB)     - 归档文件已无用
+callbacks/                       (6 files, 0.02MB)    - 回调已移至ultralytics_plugins/
+debug_visualizations_rgb/        (20 files, 1.7MB)    - 调试可视化已完成
+final_visualizations/            (11 files, 1.8MB)    - 最终可视化已移至results/
+visualizations_6ch/              (10 files, 2.1MB)    - 6ch可视化已废弃
+visualizations_6ch_spectral_aug/ (10 files, 1.8MB)    - 6ch光谱增强已废弃
+visualizations_check/            (35 files, 8.4MB)    - 检查可视化已完成
+visualizations_dilated_results/  (20 files, 2.1MB)    - Dilated结果已废弃
+visualizations_false_color/      (20 files, 3.6MB)    - 假彩色已移至results/
+visualizations_filtered_results/ (34 files, 3.3MB)    - Filtered结果已废弃
+visualizations_phase2/           (43 files, 1.6MB)    - Phase2可视化已完成
+visualizations_phase2_v2/        (5 files, 0.16MB)    - Phase2 v2已完成
+visualizations_rerun_verification/ (5 files, 1.8MB)   - 重跑验证已完成
+visualizations_test/             (10 files, 2.6MB)    - 测试可视化已完成
+
+【6. 工具和临时文件 - 酌情处理 (8个, ~50MB)】
+tools/                           (21 files, 0.12MB)   - 工具脚本(检查是否已移至scripts/)
+read/                            (5 files, 3.9MB)     - 阅读材料(可能有用)
+tmp/                             (2 files, 0.22MB)    - 临时文件(可删除)
+notebooks/                       (1 file, 0.006MB)    - Jupyter笔记本(空目录?)
+.claude/                         (0 files, 空)        - Claude缓存(空目录)
+openspec/                        (0 files, 空)        - OpenSpec缓存(空目录)
+
+总计: 66个文件夹
+- 保留: 13个 (标准结构8 + 开发环境5)
+- 删除: 45个 (废弃数据27 + 废弃实验17 + 临时备份1)
+- 检查: 8个 (工具和临时文件)
+
+预计释放空间: ~13.2GB

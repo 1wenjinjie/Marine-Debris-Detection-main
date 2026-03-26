@@ -1,0 +1,14 @@
+channels: 6
+names:
+- Marine Debris
+- Dense Sargassum
+- Sparse Sargassum
+- Natural Organic
+- Ship
+- Foam
+- Wakes
+nc: 7
+path: D:\OceanEdge_Group\Marine-Debris-Detection-main\mask_bbox_rescue_rebalanced
+test: D:\OceanEdge_Group\Marine-Debris-Detection-main\mask_bbox_rescue_rebalanced\test_rebalanced.txt
+train: D:\OceanEdge_Group\Marine-Debris-Detection-main\mask_bbox_rescue_rebalanced\train_rebalanced.txt
+val: D:\OceanEdge_Group\Marine-Debris-Detection-main\mask_bbox_rescue_rebalanced\val_rebalanced.txt

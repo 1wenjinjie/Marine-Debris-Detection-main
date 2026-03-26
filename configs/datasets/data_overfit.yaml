@@ -1,0 +1,17 @@
+path: D:/OceanEdge_Group/Marine-Debris-Detection-main
+train: overfit.txt
+val: overfit.txt
+test: overfit.txt
+
+nc: 7
+names:
+  - Marine_Debris
+  - Dense_Sargassum
+  - Sparse_Sargassum
+  - Natural_Organic
+  - Ship
+  - Foam
+  - Wakes
+channels: 3
+
+task: detect

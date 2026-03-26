@@ -1,0 +1,368 @@
+﻿
+                    项目目录结构详细说明文档                                    
+                      (2025-12-22 最终版本)                                    
+═
+
+━
+【问题1回答】当前模型通道数情况
+━
+
+ **主力数据集 (2个)**:
+1. **7通道 (7ch)** - mask_bbox_rescue_split/
+   - 位置: data/processed/mask_bbox_rescue_split/
+   - 文件数: 3290 files (11.2GB)
+   - 配置: configs/datasets/marida_mask_rescue_7ch.yaml
+   - 通道: B1,B2,B3,B4,B8,B11,B12 (MARIDA标准7波段)
+   - 状态:  **当前基线SOTA** (F1=0.806)
+   - 用途: 主力训练,已验证有效
+
+2. **10通道 (10ch)** - mask_bbox_rescue_10ch/
+   - 位置: data/processed/mask_bbox_rescue_10ch/
+   - 文件数: 1030 files (1.29GB)
+   - 配置: configs/datasets/marida_mask_rescue_10ch.yaml
+   - 通道: B1-B12原始7通道 + FDI + NDVI + RedEdge (光谱特征)
+   - 状态:  **YAML配置有误** (只有1个类,需要7个类)
+   - 用途: 光谱增强实验 (待修复后启动)
+
+ **已废弃的RGB数据集**:
+- MARIDA_rgb_256/  已删除
+- MARIDA_YOLO_6band_png/  已删除  
+- mask_bbox_rescue_split/ 内部也**不包含RGB版本**
+
+ **配置文件中的其他通道数**:
+- marida_rescue_split_3ch.yaml (RGB,3通道) - 但数据已不存在
+- marida_rescue_split_4ch_nir.yaml (RGB+NIR) - 旧版测试
+- marida_rescue_split_5ch.yaml (5通道) - 旧版测试
+- marida_rescue_split_6ch.yaml (6通道) - 旧版测试
+ 这些都是**历史实验配置**,实际数据已清理
+
+
+【问题2回答】RGB对照组情况
+━
+
+ **RGB数据已全部删除,但有历史实验结果可用**
+
+当前状态:
+- RGB原始数据 (MARIDA_rgb_256/)   已删除
+- RGB YOLO格式 (MARIDA_YOLO_RGB/)   已删除 (在之前清理中)
+- RGB PNG格式   已删除
+
+但保留了:
+ **experiments/runs/** 中可能有历史RGB实验结果
+    可以从experiments/runs/中提取RGB性能数据作为对照组
+    无需重新训练,直接引用历史最佳结果
+
+ **论文对照组建议**:
+方案A: 使用历史RGB实验数据 (如果experiments/runs/中有完整记录)
+方案B: 重新生成RGB数据集并训练 (需要从MARIDA/patches/重新提取RGB波段)
+方案C: 直接对比7ch vs 10ch,不做RGB对照 (因为7ch本身已包含RGB信息)
+
+ **推荐**: 方案C - 因为7ch已经包含了B2(Blue),B3(Green),B4(Red)
+           对比 7ch基线 vs 10ch光谱增强 已足够说明光谱特征的贡献
+
+
+【问题3回答】根目录13个文件夹详细说明
+
+
+
+━
+ 1. configs/ (30 files) - 配置文件目录
+━
+存放所有YAML配置文件
+
+子目录:
+   datasets/ (20 files) - 数据集配置
+      marida_mask_rescue_7ch.yaml        **主力配置** (7通道,F1=0.806)
+      marida_mask_rescue_10ch.yaml       10通道配置 (需修复)
+      marida_mask_rescue_10ch_fixed.yaml
+      marida_optimized_anchors.yaml      K-Means优化锚框
+      其他16个历史配置 (3ch/4ch/5ch/6ch等旧版测试)
+  
+   models/ (9 files) - 模型架构配置
+       yolov11n_7ch.yaml                  YOLOv11n 7通道模型
+       yolov11n_10ch.yaml                 YOLOv11n 10通道模型 (待用)
+       其他7个历史模型配置
+
+作用: 所有训练/验证时需要的--data和--cfg参数都从这里读取
+状态:  已整理,主力配置清晰
+
+
+ 2. data/ (8785 files, 16.9GB) - 数据集目录
+━━
+存放所有数据集(原始+处理后)
+
+子目录结构:
+   raw/ - 原始数据
+      MARIDA/
+          patches/ (原始Sentinel-2多光谱图像.tif)
+          shapefiles/ (矢量标注.shp)
+          splits/ (官方train/val/test划分)
+          labels_mapping.txt
+  
+   processed/ - 处理后的数据
+       mask_bbox_rescue_split/  **7通道主力数据集** (3290 files, 11.2GB)
+          train/
+             images/ (347个.npy文件,每个7通道)
+             labels/ (347个.txt YOLO格式标注)
+          val/
+             images/ (114个.npy)
+             labels/ (114个.txt)
+          test/
+             images/ (53个.npy)
+             labels/ (53个.txt)
+          train.txt (训练集文件列表)
+          val.txt
+          test.txt
+      
+       mask_bbox_rescue_10ch/  **10通道光谱增强数据集** (1030 files, 1.29GB)
+           train/images/ (347个.npy,每个10通道)
+           train/labels/
+           val/images/ (114个.npy)
+           val/labels/
+           test/images/ (53个.npy)
+           test/labels/
+
+关键信息:
+- .npy格式: NumPy数组,shape=(H,W,C),例如(256,256,7)或(256,256,10)
+- 7通道: [B1,B2,B3,B4,B8,B11,B12] = [Coastal,Blue,Green,Red,NIR,SWIR1,SWIR2]
+- 10通道: 7通道 + [FDI,NDVI,RedEdge] 光谱特征
+- 标注格式: YOLO txt格式 (class x_center y_center width height)
+- 样本数: train=347, val=114, test=53 (MARIDA官方划分)
+
+
+ 3. docs/ (24 files) - 文档目录
+━
+项目文档和分析报告
+
+子目录:
+   analysis/ (18 files) - 分析报告
+      CLASS_STRATEGY_ANALYSIS.md         类别策略分析
+      MULTISPECTRAL_ANALYSIS.md          多光谱分析
+      TEST_REPORT.md                     测试报告
+      README_DATASET_ANALYSIS.md         数据集分析
+      其他14个分析文档
+  
+   references/ (5 files) - 参考文献
+      MARIDA_data.pdf                    **核心论文** (MARIDA数据集)
+      journal.pone.0262247.pdf           海洋垃圾检测论文
+      work.pdf                           工作论文
+      journal_pone_text.txt              论文文本提取
+      work_text.txt
+  
+   api/ (0 files) - API文档 (待建)
+   paper/ (0 files) - 论文草稿 (待建)
+
+核心文件:
+- AGENTS.md: AI代码生成规范 (文件路径约定、命名标准)
+- CLAUDE.md: 项目记忆文件 (基线配置、实验路线、已知问题)
+- .日志.md: 变更日志 (重构时间线、当前状态、待办任务)
+
+
+ 4. experiments/ (4083 files, 1.34GB) - 实验结果目录
+
+所有历史实验的训练结果
+
+子目录:
+   runs/ (4082 files) - Ultralytics训练输出
+      detect/
+         yolov11n_7ch_512_baseline/         早期基线
+         yolov11n_7ch_512_finetune/         微调实验
+         yolov11n_7ch_512_finetune_wakeboost/  **SOTA实验** (F1=0.806)
+         yolov11n_10ch_试验/                10ch失败实验 (配置错误)
+         其他几十个历史实验
+            每个实验包含:
+             weights/ (best.pt, last.pt)
+             results.csv (训练曲线数据)
+             confusion_matrix.png
+             F1_curve.png, PR_curve.png
+             args.yaml (训练参数)
+  
+   checkpoints/ (空) - 检查点目录 (待用)
+   configs/ (空) - 实验配置备份 (待用)
+   logs/ (1 file) - 训练日志
+
+关键实验:
+- yolov11n_7ch_512_finetune_wakeboost/  **当前最佳**
+  * F1=0.806, Precision=0.826, Recall=0.787
+  * 超参数: imgsz=512, mosaic=0, lr0=5e-4, epochs=30
+  * class_balance_power=1.3 (Wake类权重提升)
+
+
+ 5. results/ (10 files) - 结果输出目录
+
+最终结果、可视化、论文图表
+
+子目录:
+   metrics/ - 性能指标
+      validation_results.json            验证结果摘要
+  
+   visualizations/ - 可视化结果
+      (待添加论文图表)
+  
+   figures/ - 论文图表
+       (待生成)
+
+当前文件:
+- folder_cleanup_analysis.txt (清理分析)
+- folder_cleanup_report.txt (清理报告)
+- project_structure_detailed.txt (本文档)
+
+
+ 6. scripts/ (125 files) - 脚本工具目录
+
+所有Python脚本,按功能分类
+
+
+子目录:
+   preprocessing/ (13 files) - 数据预处理
+  │    preprocess_extract_bands.py        提取波段
+  │    preprocess_mask_to_yolo.py         Mask转YOLO格式
+      preprocess_split_dataset.py        数据集划分
+      preprocess_augmentation.py         数据增强
+      preprocess_create_npy_cache.py     创建.npy缓存
+      其他8个预处理脚本
+  
+   training/ (25 files) - 模型训练
+      train_7ch.py                       **7通道训练脚本**
+      train_10ch_spectral.py             10通道训练脚本
+      train_comparative_experiments.py   对比实验
+      其他22个训练脚本 (历史版本)
+  
+   evaluation/ (17 files) - 模型评估
+      validate_annotations.py            验证标注
+      validate_preprocessing.py          验证预处理
+      test_small_batch.py                小批量测试
+      其他14个评估脚本
+  
+   visualization/ (22 files) - 可视化 (注:之前统计有误,实际更多)
+      visualize_dataset.py               数据集可视化
+      visualize_multispectral.py         多光谱可视化
+      visualize_yolo.py                  YOLO结果可视化
+      display_marida_images.py           MARIDA图像展示
+      其他18个可视化脚本
+  
+   utils/ (48 files) - 工具函数
+       add_spectral_indices.py            **生成FDI/NDVI/RedEdge**
+       optimize_anchors_marida.py         **K-Means锚框优化**
+       analyze_class_distribution.py      类别分布分析
+       compute_channel_stats.py           通道统计
+       plot_publication_metrics.py        论文指标绘图
+       其他43个工具脚本
+
+关键脚本:
+- scripts/preprocessing/preprocess_extract_bands.py: 从MARIDA .tif提取7通道
+- scripts/utils/add_spectral_indices.py: 生成10通道 (7ch10ch)
+- scripts/training/train_7ch.py: 主力训练脚本
+
+
+ 7. src/ (空) - 源代码模块目录
+━
+核心源代码模块 (待开发)
+
+计划结构:
+   core/ - 核心模块
+      datasets/ (自定义数据集加载器)
+      losses/ (EIoU等自定义损失函数)
+      metrics/ (评估指标)
+      trainers/ (自定义训练器)
+  
+   modules/ - 网络模块
+      necks/ (Bi-FPN等Neck结构)
+      heads/ (检测头)
+      backbones/ (骨干网络)
+  
+   utils/ - 工具函数
+       visualization.py
+       metrics.py
+       io.py
+
+当前状态: 空目录,待实现EIoU Loss和Bi-FPN时创建
+
+
+ 8. tests/ (2 files) - 测试代码目录
+━
+单元测试和集成测试
+
+当前文件:
+   test_multispectral_optimization.py     多光谱优化测试
+   test_small_batch.py                    小批量测试 (可能重复)
+
+计划: 为src/核心模块添加单元测试
+
+
+ 9. ultralytics_plugins/ (13 files) - 自定义训练器插件
+
+扩展Ultralytics YOLO的自定义组件
+
+关键文件:
+   mask_rescue_trainer.py                 **核心自定义训练器**
+     - 多光谱.npy数据加载
+     - class_balance_power类别平衡
+     - 自定义数据增强策略
+  
+   mask_rescue_dataset.py                 自定义数据集类
+     - 加载.npy多光谱图像
+     - 支持7/10通道
+  
+   custom_augmentations.py                自定义增强
+   spectral_transforms.py                 光谱变换
+   其他9个插件文件
+
+作用: 让Ultralytics YOLO能处理多光谱.npy数据
+      这是7ch/10ch训练的核心支撑
+
+
+ 10-13. 开发环境文件夹 (保留但不深入说明)
+
+   .venv/ (33444 files, 1.12GB) - Python虚拟环境
+   .vscode/ (2 files) - VSCode配置
+   .idea/ (7 files) - PyCharm配置  
+   __pycache__/ (20 files) - Python字节码缓存
+
+这些是开发工具自动生成的,不需要手动管理
+
+
+ 根目录7个核心文件说明
+
+1. .gitignore                          - Git版本控制忽略规则
+2. README.md                           - 项目说明文档
+3. requirements.txt                    - Python依赖包列表
+4. QUICK_REFERENCE.txt                 - 快速参考卡 (命令/配置/性能)
+5. run_pipeline.bat                    - 自动化流水线脚本
+6. yolo11n.pt (5.8MB)                  - YOLOv11n COCO预训练权重
+7. yolo11n_7ch_init.pt (5.8MB)         - YOLOv11n 7通道初始化权重
+
+
+ 重要总结
+
+
+【回答1】当前只有 **7ch** 和 **10ch** 两个主力数据集
+        - RGB数据已全部删除,配置文件中的3ch/4ch/5ch/6ch都是历史配置无数据
+
+【回答2】RGB对照组: **不需要重新训练**
+        - 方案A: 从experiments/runs/中提取历史RGB结果 (如果有完整记录)
+        - 方案B: 重新从MARIDA/patches/提取RGB并训练 (耗时)
+        - **推荐方案C**: 直接对比7ch vs 10ch
+           因为7ch已包含B2(Blue),B3(Green),B4(Red),足以说明多光谱优势
+
+【回答3】根目录13个文件夹 = 8个标准项目目录 + 5个开发环境
+        标准目录: configs, data, docs, experiments, results, scripts, src, tests
+        开发环境: .venv, .vscode, .idea, __pycache__, ultralytics_plugins
+
+【数据流程】
+MARIDA原始.tif 
+   [preprocess_extract_bands.py] 
+   7通道.npy (data/processed/mask_bbox_rescue_split/)
+   [add_spectral_indices.py] 
+   10通道.npy (data/processed/mask_bbox_rescue_10ch/)
+   [train_7ch.py / train_10ch_spectral.py]
+   实验结果 (experiments/runs/)
+
+【下一步行动】
+P0: 修复 configs/datasets/marida_mask_rescue_10ch.yaml (7类配置)
+P1: 基线验证 (复现F1=0.806)
+P2: 10ch光谱增强实验
+
+
+              文档生成完成 - 已保存到 project_structure_detailed.txt           
+

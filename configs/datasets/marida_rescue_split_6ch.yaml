@@ -1,0 +1,21 @@
+# MARIDA mask bbox rescue dataset with 6-channel inputs (no knowledge heatmap)
+# Used as the pure baseline for LUPI comparison experiments.
+
+path: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/mask_bbox_rescue_split
+train: train.txt
+val: val.txt
+test: test.txt
+
+nc: 7
+names:
+  - Marine_Debris
+  - Dense_Sargassum
+  - Sparse_Sargassum
+  - Natural_Organic
+  - Ship
+  - Foam
+  - Wakes
+channels: 6
+
+task: detect
+mode: train

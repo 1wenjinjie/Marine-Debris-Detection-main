@@ -1,0 +1,27 @@
+# MARIDA 10-Channel Spectral Configuration (FDI/NDVI/RedEdge)
+# 严格对齐baseline (yolov11n_7ch_512_finetune_wakeboost) 配置
+
+path: data/processed/mask_bbox_rescue_10ch
+train: train/images
+val: val/images
+test: test/images
+
+# 7 classes - 与baseline完全一致
+nc: 7
+names: ['Marine_Debris', 'Dense_Sargassum', 'Sparse_Sargassum', 'Natural_Organic', 'Ship', 'Foam', 'Wakes']
+
+# 10 channels: BGR(0-2) + S2 bands(3-6) + FDI(7) + NDVI(8) + RedEdge(9)
+channels: 10
+ch: 10  # YOLOv11 model input channels
+
+# K-Means优化锚框 (avg IoU=0.8577, 针对小目标)
+anchors:
+  - [0.0431, 0.0283]
+  - [0.0283, 0.0548]
+  - [0.0449, 0.0444]
+  - [0.0766, 0.0354]
+  - [0.0522, 0.0613]
+  - [0.0759, 0.0561]
+  - [0.0805, 0.1042]
+  - [0.1617, 0.0926]
+  - [0.1875, 0.3529]

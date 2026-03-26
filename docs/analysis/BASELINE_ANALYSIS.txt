@@ -1,0 +1,44 @@
+﻿═
+                 BASELINE SOTA 完整分析总结                                 
+═
+
+【实验名称】yolov11n_7ch_512_finetune_wakeboost
+
+【关键配置】
+ 数据集: mask_bbox_rescue_split (7通道多光谱)
+ 类别数: nc=7 (Marine_Debris, Dense_Sargassum, Sparse_Sargassum, 
+                Natural_Organic, Ship, Foam, Wakes)
+ 图像尺寸: 512512px (vs 256px标准配置)
+ Batch Size: 8
+ Epochs: 30
+ 学习率: lr0=5e-4, lrf=0.1, cosine_lr=False
+ 数据增强:
+    mosaic: 0.0 (禁用!)
+    mixup: 0.0
+    copy_paste: 0.0
+    translate: 0.05
+    scale: 0.2
+    fliplr: 0.5
+    erasing: 0.2
+ 类别平衡: MASKRESCUE_CLASS_BALANCE_POWER=1.3
+
+【性能指标 @ IoU 0.5】
+ Precision: 0.826
+ Recall: 0.787
+ F1-Score: 0.806
+ mAP@50: ~0.881 (根据F1推算)
+ Best Threshold: 0.53
+
+【关键成功因素分析】
+1.  禁用Mosaic增强 - 避免多光谱通道的光谱混淆
+2.  512px分辨率 - 更好地保留小目标特征
+3.  类别平衡权重 - 处理MARIDA极端类别不平衡
+4.  保守增强策略 - translate/scale小幅度,保护光谱完整性
+5.  7通道输入 - 包含原始Sentinel-2多光谱波段
+
+【待优化空间】
+ 光谱特征: 未使用FDI/NDVI/RedEdge等物理意义光谱指数
+ 损失函数: 使用默认CIoU,未针对长宽比优化
+ 特征融合: PANet标准配置,未针对小目标优化
+ 模型容量: v11n轻量级,可用KD从更大模型学习
+

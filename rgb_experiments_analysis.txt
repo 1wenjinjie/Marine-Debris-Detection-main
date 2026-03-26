@@ -1,0 +1,41 @@
+﻿
+
+ RGB实验对照组分析
+━━
+
+【发现】experiments/runs/marida_runs/ 中保留了完整的RGB实验结果!
+
+RGB实验列表:
+1. yolo11n_3ch_rgb               (52 epochs)
+2. yolo11n_3ch_rgb_rerun         (48 epochs)  
+3. yolo11n_3ch_rgb_rerun2        (46 epochs)
+4. yolo11n_rgb_full              (59 epochs)
+5. yolov8n_rgb_png_clean         (100 epochs)
+
+以及其他通道数实验:
+- yolo11n_4ch_nir (RGB+NIR, 4通道)
+- yolo11n_5ch_swir1 (RGB+NIR+SWIR1, 5通道)
+- yolo11n_6ch_full (6通道全光谱)
+
+【结论】
+ **可以直接使用历史RGB实验作为对照组,无需重新训练!**
+
+每个实验目录包含:
+- weights/best.pt (最佳权重)
+- results.csv (训练曲线数据)
+- confusion_matrix.png (混淆矩阵)
+- F1_curve.png, PR_curve.png (性能曲线)
+- args.yaml (训练参数)
+
+【论文对照组策略】
+推荐方案: 使用 **通道数递增对比**
+- 3ch (RGB): yolo11n_3ch_rgb_rerun2 (最新版本)
+- 4ch (RGB+NIR): yolo11n_4ch_nir
+- 5ch (RGB+NIR+SWIR1): yolo11n_5ch_swir1
+- 6ch (全光谱): yolo11n_6ch_full
+- **7ch (当前基线)**: F1=0.806  SOTA
+- **10ch (光谱增强)**: 待训练  预期超越7ch
+
+这样可以展示**光谱通道数增加对性能的贡献**,论文更有说服力!
+
+

@@ -1,0 +1,19 @@
+# MARIDA v2 dataset - 7 channels (6 spectral + knowledge heatmap)
+# Plan A: 3-class detection (Marine_Debris, Algae_Organic, Ship)
+# 7th channel = distance-transform heatmap from GT masks (privileged info)
+# Scene-level split, zero same-image leakage
+
+path: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/marida_v2
+train: train_7ch.txt
+val: val_7ch.txt
+test: test_7ch.txt
+
+nc: 3
+names:
+  - Marine_Debris
+  - Algae_Organic
+  - Ship
+channels: 7
+
+task: detect
+mode: train

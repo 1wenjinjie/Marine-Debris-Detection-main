@@ -1,0 +1,22 @@
+# MARIDA mask/bbox rescue dataset - 7 channels (multispectral .npy)
+# YOLOv11 Configuration tailored for custom multispectral loader
+
+# Dataset paths (relative to this file)
+path: data/processed/mask_bbox_rescue_split
+train: train/images
+val: val/images
+test: test/images
+
+# Optional manifest files produced via preprocess_create_split_manifests.py
+train_txt: train.txt
+val_txt: val.txt
+test_txt: test.txt
+
+# Classes
+nc: 7  # number of classes
+names: ['Marine_Debris', 'Dense_Sargassum', 'Sparse_Sargassum', 'Natural_Organic', 'Ship', 'Foam', 'Wakes']
+channels: 7  # multispectral bands loaded per image
+
+# Additional info
+task: detect
+mode: train

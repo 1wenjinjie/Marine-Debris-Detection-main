@@ -1,0 +1,97 @@
+﻿═
+           Marine Debris Detection 快速参考卡片              
+
+
+ 关键目录速查
+
+ scripts/training/        训练脚本入口
+   train_7ch.py          Baseline训练
+   train_10ch_spectral.py  光谱增强训练
+ configs/datasets/        数据集配置
+   marida_mask_rescue_7ch.yaml   7通道配置
+   marida_mask_rescue_10ch.yaml  10通道配置
+ data/processed/          处理后数据
+   mask_bbox_rescue_split/   7通道数据(347 train)
+   mask_bbox_rescue_10ch/    10通道数据(347 train)
+ experiments/runs/        训练输出
+   runs_marida/          历史实验runs
+ docs/analysis/           分析文档
+   BASELINE_ANALYSIS.md  Baseline详细分析
+ ultralytics_plugins/     自定义插件
+    mask_rescue_trainer.py  自定义训练器
+
+ 常用命令速查
+
+# 1. 训练baseline (7通道)
+python scripts/training/train_7ch.py \
+  --data configs/datasets/marida_mask_rescue_7ch.yaml \
+  --epochs 30 --batch 8 --imgsz 512
+
+# 2. 训练10通道光谱增强
+python scripts/training/train_10ch_spectral.py \
+  --data configs/datasets/marida_mask_rescue_10ch.yaml \
+  --epochs 30 --batch 8
+
+# 3. 数据预处理
+python scripts/preprocessing/preprocess_extract_bands.py \
+  --bands 10 --normalize
+
+# 4. 验证模型
+python scripts/evaluation/validate_annotations.py \
+  --weights experiments/runs/runs_marida/xxx/weights/best.pt
+
+# 5. 可视化结果
+python scripts/visualization/visualize_dataset.py \
+  --data data/processed/mask_bbox_rescue_10ch
+
+ Baseline性能 (目标复现)
+━
+实验名: yolov11n_7ch_512_finetune_wakeboost
+F1-Score: 0.806  |  Precision: 0.826  |  Recall: 0.787
+配置: imgsz=512, mosaic=0, lr=5e-4, epochs=30
+
+关键超参:
+- mosaic=0 (避免光谱混淆)
+- 类别平衡power=1.3
+- translate=0.05, scale=0.2, erasing=0.2
+
+ 消融实验路线图
+
+Phase 1: 光谱特征增强 (10ch)
+   添加FDI/NDVI/RedEdge  预期F1 +5~10%
+
+Phase 2: EIoU损失优化
+   替换CIoU  预期边界框精度 +3~5%
+
+Phase 3: Bi-FPN特征融合
+   替换PANet  预期小目标mAP +5~8%
+
+Phase 4: 知识蒸馏
+   YOLOv11xv11n  预期F1 +2~4%
+
+ AI生成规则 (见AGENTS.md)
+
+ 禁止: 在根目录创建文件
+ 正确: 
+  - 新训练脚本  scripts/training/
+  - 新配置文件  configs/datasets/ 或 configs/models/
+  - 新文档  docs/analysis/ 或 docs/paper/
+  - 临时输出  results/tmp/
+
+ 当前待办 (优先级排序)
+
+[ ] 1. 修复10ch YAML配置 (7类完整)
+[ ] 2. 验证10ch数据集完整性
+[ ] 3. 决定光谱归一化策略 (保留物理意义 vs 强制[0,1])
+[ ] 4. Baseline sanity check验证
+[ ] 5. 启动10ch训练实验
+
+ 重要文档
+
+- AGENTS.md: AI代码生成规范
+- CLAUDE.md: 项目记忆与决策记录  
+- .日志.md: 变更追踪日志
+- docs/analysis/BASELINE_ANALYSIS.md: Baseline详细分析
+
+最后更新: 2025-12-22
+状态:  项目重组完成,可开始实验
