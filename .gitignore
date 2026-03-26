@@ -154,3 +154,6 @@ temp_*.ps1
 *.orig
 *.rej
 .»’÷æ.md
+
+# Local hidden markdown notes
+.*.md
