@@ -144,3 +144,13 @@ experiments/checkpoints/
 
 data/heatmaps/
 *.npy
+
+# Local temp files
+temp_*.py
+temp_*.ps1
+*.bak
+*.broken
+*.backup
+*.orig
+*.rej
+.»’÷æ.md
