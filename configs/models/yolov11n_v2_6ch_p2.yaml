@@ -1,0 +1,69 @@
+# YOLOv11n-v2-6ch-P2
+# MARIDA v2 — 6 spectral channels, 3 classes, 4-scale detection with P2 head
+#
+# Rationale: Marine_Debris objects have median ~14px in 512px input.
+#   stride-8 (P3): 14px → ~1.75 feature cells — edge case, unreliable
+#   stride-4 (P2): 14px → ~3.5 feature cells — learnable spatial descriptor
+#
+# Changes vs yolov11n_v2_6ch.yaml:
+#   - FPN extended down to P2/4 (layer 19, 128ch)
+#   - PAN bottom-up path extended to include P2 output
+#   - Detect head: [P2, P3, P4, P5] = 4 scales instead of 3
+
+ch: 6
+nc: 3
+scales:
+  n: [0.50, 0.25, 1024]
+
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]]           # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]]          # 1-P2/4
+  - [-1, 2, C3k2, [256, False, 0.25]]   # 2-P2/4  low-level features (256ch)
+
+  - [-1, 1, Conv, [256, 3, 2]]          # 3-P3/8
+  - [-1, 2, C3k2, [512, False, 0.25]]   # 4-P3/8  (512ch)
+
+  - [-1, 1, Conv, [512, 3, 2]]          # 5-P4/16
+  - [-1, 2, C3k2, [512, True]]          # 6-P4/16 (512ch)
+
+  - [-1, 1, Conv, [1024, 3, 2]]         # 7-P5/32
+  - [-1, 2, C3k2, [1024, True]]         # 8-P5/32
+  - [-1, 1, SPPF, [1024, 5]]            # 9
+  - [-1, 2, C2PSA, [1024]]              # 10 enriched P5
+
+head:
+  # --- FPN top-down ---
+  # P5 → P4
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 11
+  - [[-1, 6], 1, Concat, [1]]                   # 12 cat P4/16 (1024+512=1536)
+  - [-1, 2, C3k2, [512, False]]                 # 13 P4 neck (512ch)
+
+  # P4 → P3
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 14
+  - [[-1, 4], 1, Concat, [1]]                   # 15 cat P3/8 (512+512=1024)
+  - [-1, 2, C3k2, [256, False]]                 # 16 P3 neck (256ch)
+
+  # P3 → P2  (new high-res branch)
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]  # 17
+  - [[-1, 2], 1, Concat, [1]]                   # 18 cat backbone P2 (256+256=512)
+  - [-1, 2, C3k2, [128, False]]                 # 19 P2 output (128ch)  ← detect
+
+  # --- PAN bottom-up ---
+  # P2 → P3
+  - [-1, 1, Conv, [128, 3, 2]]                  # 20
+  - [[-1, 16], 1, Concat, [1]]                  # 21 cat P3 neck (128+256=384)
+  - [-1, 2, C3k2, [256, False]]                 # 22 P3 output (256ch)  ← detect
+
+  # P3 → P4
+  - [-1, 1, Conv, [256, 3, 2]]                  # 23
+  - [[-1, 13], 1, Concat, [1]]                  # 24 cat P4 neck (256+512=768)
+  - [-1, 2, C3k2, [512, False]]                 # 25 P4 output (512ch)  ← detect
+
+  # P4 → P5
+  - [-1, 1, Conv, [512, 3, 2]]                  # 26
+  - [[-1, 10], 1, Concat, [1]]                  # 27 cat P5 backbone (512+1024=1536)
+  - [-1, 2, C3k2, [1024, True]]                 # 28 P5 output (1024ch) ← detect
+
+  # Detect on [P2, P3, P4, P5]
+  - [[19, 22, 25, 28], 1, Detect, [nc]]         # 29

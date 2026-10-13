@@ -1,241 +1,278 @@
-# 海洋垃圾多光谱检测 — 年度研究计划（第二次修订）
+# 海洋垃圾检测项目年度研究计划（2026-03-28 重写版）
 
-> 本文件基于 2026-03-25 Phase 0 实验结果及后续深度讨论全面修订。
-> Phase 0 已完成并产出明确结论，项目方向从"LUPI 直接拼接"转向"Privileged Knowledge Distillation (PKD)"。
-
----
-
-## 一、Phase 0 实验结果（已完成）
-
-### 1.1 三组对照实验
-
-| 实验 | 配置 | Precision | Recall | mAP50 | mAP50-95 |
-|------|------|-----------|--------|-------|----------|
-| **P0-A** | 6ch 训练 + 6ch 测试（纯 baseline） | 0.675 | 0.317 | 0.312 | 0.171 |
-| **P0-B** | 7ch 训练 + 6ch 测试（heatmap 置零） | 0.026 | 0.018 | 0.023 | 0.005 |
-| **P0-C** | 7ch 训练 + 7ch 测试（GT heatmap） | 0.677 | 0.450 | 0.605 | 0.284 |
-
-> 训练配置：YOLOv11n, epochs=50, batch=8, imgsz=512, seed=0, RTX 3090 Ti
-
-### 1.2 Phase 0 结论（已冻结，不可推翻）
-
-**结论 1：Direct LUPI concatenation fails.**
-
-P0-B Recall = 0.018，相比 P0-A Recall = 0.317 暴跌 94%。7ch 模型在 heatmap 置零后几乎完全失效，说明模型对 heatmap 通道形成了 **catastrophic dependency**——它学到的是"依赖先验定位"而非"光谱特征识别"。
-
-**结论 2：GT heatmap 确实携带极强的空间先验信号。**
-
-P0-C mAP50 = 0.605 vs P0-A mAP50 = 0.312，差距 0.293。这个 gap 足以证明 heatmap 先验的价值，但这个价值在推理时不可获得（需要 GT），因此不能作为可部署方案。
-
-**结论 3：历史结果 F1=0.6774 存在信息泄漏。**
-
-P0-C 的配置即为历史实验的配置（7ch train + 7ch test with GT heatmap），该结果在科学上不可作为公平评估指标。
+> 本版基于当前已冻结的 `MARIDA v2` 实验结果重写，替代旧的 `PKD` 主线版本。
+> 当前项目的可信结论以 `MARIDA_V2_RESULTS_FREEZE_2026-03-28.md` 为准。
 
 ---
 
-## 二、四项冻结决策
+## 一、当前项目定位
 
-基于 Phase 0 结果，以下决策永久冻结：
+本项目聚焦于基于 Sentinel-2 多光谱遥感影像的海洋垃圾检测，当前已经从“泛化的模型改进尝试”收敛为一个更明确的研究问题：
 
-1. **6ch 为唯一官方可部署基线。** 所有最终模型必须以 6ch（B4, B3, B2, B8, B11, B12）作为推理输入。
-2. **7ch + GT heatmap 仅作为 oracle / teacher upper bound。** 不作为主模型，不作为论文主结果。
-3. **Phase 0 结论写死：direct LUPI concatenation fails.** 不再尝试"7ch 训练 + 6ch 推理"的直接拼接路线。
-4. **P0-B 的失败模式是论文核心证据。** 7ch 模型在 heatmap 置零后 Recall 从 0.450 暴跌至 0.018 的事实，是整篇论文 motivation section 的定量支撑，不可被后续实验覆盖或淡化。
+**在 leak-free 的 MARIDA v2 基准上，如何稳定提升极小海洋垃圾目标（Marine_Debris）的可检测性，并把结果整理成可复现、可解释、可写论文的证据链。**
 
----
+当前最重要的变化是：
 
-## 三、论文叙事重定义
-
-### 3.1 叙事升级
-
-| 层级 | 旧叙事 | 新叙事 |
-|------|--------|--------|
-| 表层 | "多一个通道效果好" | → 任何人都能做，没有 insight |
-| 中层 | "GT prior 直接用导致依赖而非学习" | → Phase 0 negative finding，有科学价值 |
-| **论文级** | **"通过蒸馏将不可部署的训练时特权先验转化为可部署模型的能力"** | → **方法论贡献** |
-
-### 3.2 核心论文主张
-
-> 直接将 GT 派生空间先验作为输入通道会导致模型对先验形成灾难性依赖，而非学习可迁移的光谱表征；
-> 但这种强先验可以通过 Privileged Knowledge Distillation 框架，在训练阶段迁移到纯 6ch 可部署模型中，
-> 使其在推理时无需任何 GT 信息即可获得显著的检测性能提升。
-
-### 3.3 论文标题方向
-
-*"Learning from Privileged Spatial Priors: A Knowledge Distillation Framework for Marine Debris Detection in Sentinel-2 Imagery"*
+- 研究主线已经不再是 `PKD`。
+- 研究主线已经转为：
+  - `MARIDA v2` 数据集重建与可信评估
+  - Marine_Debris 检测失败机制诊断
+  - `imgsz=1024 + focal loss` 的稳定改进
+  - post-hoc calibration 作为部署导向收尾
 
 ---
 
-## 四、PKD 框架设计
+## 二、截至目前的冻结结论
 
-### 4.1 核心架构
+### 2.1 数据集层面
 
-```
-┌─────────────────────────────────────┐
-│  Privileged Teacher (训练阶段)       │
-│  Input: 6ch spectral + GT heatmap   │
-│  → 学到: 空间注意力 + 光谱特征       │
-│  → 输出: 强检测结果 + 内部特征表示    │
-│  → 即 P0-C 模型 (mAP50=0.605)       │
-└──────────────┬──────────────────────┘
-               │ 蒸馏 (response → feature → attention)
-               ▼
-┌─────────────────────────────────────┐
-│  Deployable Student (推理阶段)       │
-│  Input: 6ch spectral ONLY           │
-│  → 学到: 从 teacher 迁移的空间感知    │
-│  → 输出: 无需 GT 即可检测             │
-└─────────────────────────────────────┘
-```
+- `MARIDA v2` 已完成重建与验证。
+- 采用 scene-level split，避免了旧版本中的 same-image leakage。
+- 当前冻结数据集包含 `1381` 个 patch，其中 `367` 个含目标、`1014` 个纯背景。
+- 该数据集已经可以作为论文中的正式实验基准。
 
-### 4.2 三级蒸馏（逐级验证）
+### 2.2 基线结论
 
-| 级别 | 蒸馏方式 | 内容 | 验证优先级 |
-|------|---------|------|-----------|
-| L1 | Response-level | Student 模仿 Teacher 的 soft output distribution | ⭐⭐⭐ 最先验证 |
-| L2 | Feature-level | Student 对齐 Teacher 中间层特征表示 | ⭐⭐ 第二步 |
-| L3 | Attention-level | Teacher 的 heatmap 感知注意力图指导 Student 自生成注意力 | ⭐ 第三步 |
+6 通道 baseline（3-seed）已经冻结：
 
-### 4.3 关键发现：跨输入空间蒸馏的特殊性
+- `mAP@0.5 = 0.193 +- 0.018`
+- `Marine_Debris AP50 = 0.016 +- 0.006`
+- 在实用阈值下，Marine_Debris 几乎不可检测
 
-**原始风险假设：** Teacher/Student 输入空间不同（7ch vs 6ch），KD 可能失效。
+这说明：
 
-**实验结论（Phase 2 已验证）：**
+- 标准 6ch YOLO 在该任务上并非“训练坏了”
+- 但对极小海洋垃圾目标的实用检测能力不足
 
-1. **Response-level KD 成功，且是最优路径。** 与预期相反，"松约束"（只对齐输出分布）比"强约束"（对齐中间层特征）更有效。原因：response-level 给 student 自由度用 6ch 特征重构 teacher 的检测行为。
-2. **Feature-level KD 有正增益但偏弱。** Teacher neck 编码了 heatmap 通道信息，student 的 6ch neck 特征空间与之有结构性差异，强制 L2 对齐效果有限。
-3. **联合蒸馏反而干扰。** 两种 loss 梯度方向冲突（response 鼓励"更多检测"，feature 约束"表征对齐"），联合后 student 无法同时满足两个目标。
+### 2.3 当前最优结果
 
-**论文价值：** 这一组结论构成了一个关于"跨输入空间知识蒸馏中蒸馏模式选择"的 insight，区别于标准 KD 文献中 teacher/student 同输入的假设。
+当前最优 6 通道模型已经冻结为：
 
----
+- `imgsz=1024`
+- `focal loss (gamma=2.0, alpha=0.25)`
+- 3-seed 验证完成
 
-## 五、实验执行计划与进展
+其核心结果是：
 
-### 核心原则：先证明机制成立，再逐级加码，最后堆证据
+- `conf=0.05` 下，Marine_Debris `TP = 5.7 +- 0.6 / 13`
+- 对应实用 recall 约 `44%`
+- 相比 baseline 的 `0/13`，是清晰且稳定的改进
 
-### Phase 1：PKD 最小可行验证 ✅ 已完成（2026-03-26）
+这已经构成当前论文主结果。
 
-**目标：回答"privileged prior 能不能通过蒸馏被 6ch student 吸收？"**
+### 2.4 calibration 结论
 
-| 实验编号 | 配置 | Precision | Recall | mAP50 | mAP50-95 |
-|---------|------|-----------|--------|-------|----------|
-| P0-A (baseline) | 6ch 训练 + 6ch 测试 | 0.675 | 0.317 | 0.312 | 0.171 |
-| **P1-RKD** | **6ch student + response KD** | **0.450** | **0.454** | **0.401** | **0.219** |
-| P0-C (oracle) | 7ch 训练 + 7ch 测试 | 0.677 | 0.450 | 0.605 | 0.284 |
+在冻结 best 6ch model 后，进一步完成了一个小型 post-hoc calibration 实验：
 
-**决策门：✅ PASS** — mAP50 提升 +0.089（0.312→0.401），远超 0.02 阈值。Recall 从 0.317 跃升至 0.454，追平 oracle。
+- `Platt scaling` 在 `conf=0.05` 下提升很小
+- 但在 `conf=0.1` 下效果明显：
+  - 未校准：`0.7 +- 0.5`
+  - 校准后：`5.0 +- 0.0`
 
-**关键发现：** 蒸馏信号明确存在。Teacher 从 heatmap 学到的"哪里值得关注"的信息，通过 soft label 成功传递给了 6ch student。
+这说明 calibration 的价值主要在于：
 
-**Conf sweep 补充分析（Step 2.0）：**
-在 conf=0.1 下公平对比，P1-RKD 的 mAP50=0.470 vs P0-A=0.335（+40%），mAP50-95=0.287 vs 0.196（+46%）。Precision 下滑部分由置信度校准导致，不完全是真误检。
+- 提升 score usability
+- 稳定部署阈值
+- 使较高阈值也能保留有效 TP
 
-### Phase 2：蒸馏模式消融 ✅ 已完成（2026-03-26）
-
-| 实验 | KD 模式 | Precision | Recall | mAP50 | mAP50-95 |
-|------|---------|-----------|--------|-------|----------|
-| **P0-A** | — (6ch baseline) | 0.675 | 0.317 | 0.312 | 0.171 |
-| **P2-FKD** | feature only | 0.502 | 0.338 | 0.374 | 0.178 |
-| **P2-RFKD** | response + feature | 0.573 | 0.290 | 0.346 | 0.166 |
-| **P2-RKD** | **response only** | **0.450** | **0.454** | **0.401** | **0.219** |
-| **P0-C** | — (7ch oracle) | 0.677 | 0.450 | 0.605 | 0.284 |
-
-**Phase 2 结论：**
-
-1. **Response KD 是最有效的特权先验迁移路径。** mAP50、mAP50-95、Recall 均为最优。
-2. **Feature KD 有增益但弱于 Response KD。** mAP50 +20% vs baseline，但 Precision 更保守（0.502 vs RKD 的 0.450）。
-3. **联合蒸馏（RFKD）出现干扰效应 — 有价值的 negative finding。** 两种 loss 梯度方向可能冲突，联合反而比单独差。Teacher neck features 编码了 heatmap 通道信息，强制 L2 对齐不同输入空间的特征会扭曲 student 表征。
-4. **Response KD 的"松约束"更适合跨输入空间蒸馏。** 只要求输出分布对齐，给 student 自由度用自己的方式学到相似检测行为。
-
-> 这三组消融构成论文 Table 2 的核心，展示了蒸馏模式选择对跨输入空间知识迁移的影响。
-
-### Phase 2.5：3-seed 稳定性验证 🔄 进行中
-
-对 P0-A（baseline）和 P2-RKD（best method）跑 seed=0,1,2，报告均值 ± 标准差。
-
-### Phase 3：证据补全（下一步）
-
-| 任务 | 内容 | 论文位置 |
-|------|------|---------|
-| 3.1 SOTA 对比 | 提取 MARIDA 文献指标，横向对比 | Table 3 |
-| 3.2 误差分析 | Class-wise P/R/F1, FP/FN 可视化, 混淆分析 | Section 6 |
-| 3.3 Cross-scene | 按地理/日期重划 train/test，验证非随机过拟合 | Table 4 |
-| 3.4 MADOS 外部验证 | Zero-shot transfer → 分析域偏移 → 可选 fine-tune | Section 7 |
-
-### Phase 4：论文撰写与投稿（3-4 月）
+因此 calibration 是一个有价值的收尾实验，但不是新的主贡献。
 
 ---
 
-## 六、目标期刊
+## 三、当前论文主线
 
-| 期刊 | IF | 适配度 | 说明 |
-|------|-----|-------|------|
-| **IEEE TGRS** | ~8 | ⭐⭐⭐⭐⭐ | 方法+遥感应用，完美匹配 PKD 故事 |
-| **ISPRS Journal** | ~12 | ⭐⭐⭐⭐ | 偏方法论的遥感论文，需要更强证据 |
-| Remote Sensing of Environment | ~13 | ⭐⭐⭐ | 偏应用，需要更多环境科学讨论 |
-| IEEE JSTARS | ~5 | ⭐⭐⭐⭐ | 备选，接受率更高 |
+### 3.1 建议的核心叙事
 
----
+论文最合理的主线应为：
 
-## 七、论文最终结构
+1. 旧 MARIDA 处理流程和旧 split 存在评估风险，因此需要 `MARIDA v2`
+2. 在 leak-free 的 `MARIDA v2` 上，标准 6ch baseline 对 Marine_Debris 在实用阈值下失效
+3. 通过机制诊断可以看出，问题不只是“没有学到”，而是“小目标 + 低置信度 + operating point 敏感”
+4. 更高输入分辨率 (`1024`) 与 focal loss 能稳定提升 Marine_Debris 检测能力
+5. calibration 可进一步改善 score 的部署可用性
 
-1. **Introduction**：海洋垃圾检测的挑战 → GT 空间先验的价值与不可部署性 → PKD 框架动机
-2. **Related Work**：海洋垃圾遥感监测 / 多光谱目标检测 / LUPI 理论 / 知识蒸馏
-3. **Problem Formulation**：MARIDA 数据特点 → 6ch/7ch 通道设计 → Phase 0 negative finding 作为动机
-4. **Method**：PKD 框架 → Teacher 设计 → 三级蒸馏 → Student 部署
-5. **Experiments**：
-   - Table 1: Phase 0 对照（motivation）
-   - Table 2: PKD 消融（核心贡献）
-   - Table 3: SOTA 对比
-   - Table 4: Cross-scene 泛化
-6. **Error Analysis**：class-wise + scene-wise + 失败模式
-7. **External Validation**：MADOS zero-shot 迁移
-8. **Discussion & Limitations**：数据规模约束 / 域偏移 / 部署距离 / 小数据下 PKD 的价值
-9. **Conclusion**
+### 3.2 论文中各条支线的角色
 
----
+#### 主线内容
 
-## 八、时间线
+- `MARIDA v2` 数据集与构建说明
+- baseline 与失败机制诊断
+- `imgsz=1024 + focal loss` 主结果
+- calibration 收尾分析
 
-```
-2026-03  Phase 0 ✅ Phase 1 ✅ Phase 2 消融 ✅ (大幅超前进度)
-2026-04  Phase 2.5: 3-seed 稳定性 + Phase 3.1: SOTA 文献对比
-2026-05  Phase 3.2: 误差分析 (class-wise, FP/FN 可视化)
-2026-06  Phase 3.3: Cross-scene 内部泛化验证
-2026-07  Phase 3.4: MADOS 外部验证
-2026-08  Phase 4 开始: 论文初稿
-2026-09  导师审阅 + 修改
-2026-10  投稿
-2026-11  审稿期 / 准备答辩材料
-2026-12  Buffer / 修稿 / 补实验
-```
+#### 分析性旁线
 
----
+- `7ch oracle teacher`
+- `P0-B` 的 shortcut collapse
+- `PKD` 的失败与分析
 
-## 九、执行规则
+这些内容仍然有价值，但更适合写成：
 
-1. **每轮只推进一个主问题。** 同一阶段内不并行推进多个大分支。
-2. **每个正式实验都要有实验卡。** 记录：目标、假设、配置、命令、seed、结果、结论、是否进入论文主表。
-3. **Phase 0 结果在论文定稿前不可更改口径。** 它是 motivation section 的定量支撑。
-4. **先验证机制再优化效果。** Teacher 优化排在蒸馏验证之后，而非之前。
-5. **数据量小不是回避而是叙事。** 论文中正面讨论 347 样本的局限，并将其转化为 PKD 的优势场景——"正因为标注稀缺，privileged prior 的蒸馏才更有价值"。
-6. **证据标准决定论文级别。** 仅有 baseline + student 提升不够一区；必须补齐 negative result + 分层消融 + 3-seed + cross-scene + 外部验证。
+- motivation
+- upper bound analysis
+- negative finding
+- discussion
+
+而不是论文主结果。
+
+#### 当前不建议作为主线继续深挖
+
+- 重新回到 `PKD` 作为核心方法
+- 把 `FDI` 作为当前最优先方向
+- 大规模继续尝试新 detection head
+- 同时并行扩展多个新实验方向
 
 ---
 
-## 十、答辩核心三问
+## 四、未来 1-3 个月的核心安排
 
-- **你解决了什么问题？**
-  如何将 GT 派生的强空间先验从不可部署的训练时特权信息，转化为纯光谱可部署检测模型的能力。
+### Phase A：结果冻结与论文写作准备（最高优先级）
 
-- **你的方法多解决了什么？**
-  证明了直接拼接 GT 先验会导致灾难性依赖（Phase 0 negative finding），并提出了基于三级知识蒸馏的 PKD 框架，使 6ch student 在无 GT 信息时仍能显著超越 baseline。
+目标：把当前已经站住的结果整理成论文可直接使用的材料。
 
-- **你的方法还不能解决什么？**
-  数据量限制下的统计置信度；跨传感器/跨区域泛化；从 benchmark 到实际海洋监测部署的工程差距。
+需要完成：
+
+1. 主表、附表、图注、误差案例图整理
+2. `MARIDA v2` 数据集章节草稿
+3. baseline 与 best 6ch model 的结果章节草稿
+4. calibration 小节草稿
+5. discussion 中关于 threshold sensitivity 的表述
+
+产出：
+
+- 一版完整的论文实验章节草稿
+- 一套统一口径的图表素材
+
+### Phase B：有限补证据（只做高价值、低风险项）
+
+目标：补足论文说服力，但不打开新的无底洞实验线。
+
+优先候选：
+
+1. 更系统的错误分析
+2. class-wise / scene-wise 案例图整理
+3. 若时间允许，做一个轻量外部验证或跨场景分析
+
+执行原则：
+
+- 只补“增强说服力”的证据
+- 不再为了追求新方向而重开大规模实验
+
+### Phase C：论文成稿与导师汇报
+
+目标：从“实验完成”转向“论文表达完整”。
+
+需要完成：
+
+1. 引言重写
+2. 方法章节重写
+3. 实验章节整合
+4. 结论与 limitation 明确化
 
 ---
 
-*最后更新：2026-03-26 | Phase 0-2 实验完成，3-seed 稳定性验证进行中*
-*实验数据：runs_phase0/, runs_phase1/, runs_phase2/*
+## 五、当前不再作为主线推进的内容
+
+以下方向可以保留为补充讨论，但不再作为近期主任务：
+
+### 5.1 PKD
+
+原因：
+
+- 当前实证结果并未支持它作为主结果
+- 与当前冻结结论不一致
+- 若继续深挖，成本高且风险大
+
+论文定位：
+
+- negative finding
+- privileged upper bound analysis
+
+### 5.2 FDI
+
+原因：
+
+- 当前 3-seed 结果表明，大部分困难实例并非“完全不可分”
+- 剩余 truly unrecoverable 实例仅有 `2` 个
+- 目前投入产出比不高
+
+论文定位：
+
+- 未来工作
+- 可选补充分析
+
+### 5.3 继续堆结构模块
+
+例如：
+
+- P2 head
+- 新 neck
+- 注意力模块堆叠
+
+原因：
+
+- 当前项目的核心矛盾已经较明确
+- 再堆模块容易让论文主线变散
+
+---
+
+## 六、建议的论文结构
+
+### 6.1 章节结构
+
+1. **Introduction**
+2. **Related Work**
+3. **MARIDA v2 Dataset and Evaluation Protocol**
+4. **Baseline Failure Diagnosis**
+5. **Improved 6ch Detection with 1024 Resolution and Focal Loss**
+6. **Post-hoc Score Calibration**
+7. **Discussion and Limitations**
+8. **Conclusion**
+
+### 6.2 表格建议
+
+- Table 1：`MARIDA v2` 数据集统计
+- Table 2：baseline 与 best 6ch model 主结果
+- Table 3：Marine_Debris threshold sweep
+- Table 4：scene-level stability / case-level stability
+- Table 5：post-hoc calibration 对比
+
+### 6.3 图像建议
+
+- baseline 训练曲线
+- best 6ch model 训练曲线
+- baseline vs best qualitative predictions
+- debris patch recoverability cases
+- calibration 前后 operating point 对比图
+
+---
+
+## 七、风险判断
+
+### 当前主要风险
+
+1. 继续沿用旧 PKD 叙事，导致论文主线和现有结果错位
+2. 为了“追更大贡献”而重新打开多个高风险实验方向
+3. 图表和文字口径不统一，影响导师和评审理解
+
+### 当前最大优势
+
+1. 已有 leak-free 数据集基础
+2. 已有稳定 3-seed 主结果
+3. 已有明确的机制分析链条
+4. 已有 calibration 收尾，可形成较完整的实验闭环
+
+---
+
+## 八、下一步执行建议
+
+接下来最合理的顺序是：
+
+1. 冻结当前实验口径，不再改主配置
+2. 继续完善论文主表、图注和结果章节
+3. 仅补少量高价值分析
+4. 尽快进入完整写作阶段
+
+一句话总结：
+
+**项目现在最该做的不是再找新的模型突破，而是把已经拿到的“可信数据集 + 稳定主结果 + 可解释收尾”整理成一篇完整且自洽的论文。**

@@ -1,0 +1,144 @@
+
+
+===== PAGE 1 =====
+1 
+ 
+Detecting Marine Pollutants and Sea Surface Features with Deep 
+Learning in Sentinel-2 Imagery  
+ 
+Katerina Kikaki a,b,*, Ioannis Kakogeorgioua, Ibrahim Hoteitc, Konstantinos Karantzalosa 
+a Remote Sensing Laboratory, National Technical University of Athens, Athens, Zografou, Greece 
+b Institute of Oceanography, Hellenic Centre for Marine Research, Athens, Anavyssos, Greece 
+c Physical Sciences and Engineering Division, King Abdullah University of Science and Technology, Saudi 
+Arabia 
+ 
+Supplementary Material 
+Table S1: The sites where publications and reports were collected for MADOS construction. 
+Site  Publications Reports 
+Marine debris 
+Global (Kikaki et al., 2022) (MARIDA)  
+Guatemala & Honduras (Kikaki et al., 2020) Caroline Power (Citizen scientist) 
+Haiti (Kikaki et al., 2022) 4ocean Clean-ups 
+Manila, Philippines (Gonzaga et al., 2021)  
+Calabria, Italy (Sannigrahi et al., 2022)  
+Beirut, Lebanon (Sannigrahi et al., 2022)  
+Oil spills 
+Zakynthos Isl., Greece (Kolokoussis and Karathanassi, 2018)  
+Saronikos Gulf, Greece (Parinos et al., 2019)  
+Mauritius (Rajendran et al., 2021) https://www.youtube.com/watch?v=kDOobamVtAA&
+ab_channel=GuardianNews 
+Solomon Isl.  https://www.solomontimes.com/news/growing-
+concerns-over-bulker-oil-spill/8889 
+East China Sea (Sun et al., 2018)  
+Red Sea (Vankayalapati et al., 2023)  
+Peru  (Mega, 2022) 
+Arabian Gulf (Zhao et al., 2014), (Sardi et al., 2020) KAUST & NTUA reports and analysis 
+Jellyfish 
+Nova Scotia (Qi et al., 2020)  
+Sea snot 
+Marmara Sea (Hu et al., 2022)  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+===== PAGE 2 =====
+2 
+ 
+Table S2: Patches and pixels class distribution (%) for the train, validation and test sets in MADOS. 
+Set MD DenS SpFA NatM Ship Oil MWater SLWater Foam TWater SWater Wav es OilPlat Jellyfish Sea snot
+ Patches 
+Train 17.45 3.07 6.21 3.63 9.56 14.24 48.92 2.02 2.16 8.72 5.02 6.84 10.4 0.42 2.16 
+Validation 15.26 1.87 4.83 3.43 11.68 11.99 47.82 2.34 2.02 7.32 4.52 9.19 14.33 0.62 2.49 
+Test 17.03 2.88 5.08 2.47 11.81 10.99 48.35 1.79 1.92 8.24 5.36 9.2 14.7 0.27 2.2 
+MADOS 
+Total 16.84 2.75 5.6 3.28 10.63 12.88 48.52 2.03 2.07 8.28 4.99 7.99 12.42 0.43 2.25 
+ Pixels 
+Train 0.34 0.24 0.34 0.14 0.78 18.45 34.77 20.64 0.06 11.69 9.19 1.31 0.92 0.18 0.96 
+Validation 0.32 0.33 0.18 0.03 1.04 11.86 25.77 35.06 0.1 10.91 11.17 1.12 1.1 0.26 0.75 
+Test 0.27 0.36 0.49 0.08 0.99 14.27 38.62 25.82 0.11 11.68 3.53 1.77 1.33 0.08 0.62 
+MADOS 
+Total 0.32 0.29 0.34 0.1 0.89 15.84 33.53 25.39 0.08 11.5 8.29 1.38 1.06 0.17 0.83 
+ 
+ 
+Table S3: F1 scores of SegNeXt, U-Net and MariNeXt models over the different Batch sizes. The scores 
+are measured on MADOS test set and averaged over five trials. 
+Method 
+Batch Size 
+5 10 15 20 
+U-Net 53.6 59.7 63.8 61.2 
+SegNeXt 60.6 58.5 54.9 52.2 
+MariNeXt 76.0 74.4 69.1 62.0 
+ 
+ 
+Table S4: Per class evaluation of our employed strategies on MADOS test set using F1 score, averaged 
+over five trials.  
+Method 
+F1-Score 
+MD DenS SpFA NatM Ship Oil MWater SLWater Foam TWater SWater Wa ves OilPlat Jellyfish Sea 
+snot 
+MariNeXt 
+(Without 
+1st Stage) 
+39.5 63.5 71.8 55.3 54 77.2 87.6 99.9 61.1 87 64.9 35.6 82.9 81 .6 72.8 
+MariNeXt 
+(Without 
+TTA+VSCP) 
+45.6 72.0 76.6 30.6 61. 3 80.2 90.0 98.4 66. 8 86.4 56.3 43.2 83. 4 25.9 77.2 
+MariNeXt 51.3 81.2 84.3 57.2 62. 8 78.3 90.7 99.6 87.1 90.1 63.7  37.7 84.3 90.0 81.4 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+===== PAGE 3 =====
+3 
+ 
+ 
+ 
+Figure S1: Classification results obtained by our MariNeXt fram ework. We demonstrat e representative 
+cases of: a) Ships, Wakes, Natural Organic Material and Marine Water, b) Ships, Wakes, Shallow & 
+Marine Water, c) Natural Organic Material, Marine Water and haz e, d) Dense & sparse Sargassum, 
+Marine Water and haze, e) Oil Spill, Oil Platform and Marine Wa ter, and f) Shallow & Marine Water, Oil 
+Platform. The RGB images were stretched for illustration purpos es. Land, Clouds and thin clouds are 
+masked with black color. 
+ 
+
+
+===== PAGE 4 =====
+4 
+ 
+ 
+Figure S2: T-SNE Analysis on MADOS dataset using Spectral Angle  Mapping for Marine Debris and Oil 
+Spill. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+===== PAGE 5 =====
+5 
+ 
+ 
+Figure S3: T-SNE Analysis using (a) SAM and (b) MariNeXt features for Oil Spill Waves & Wakes and 
+Marine Water. For fair comparison, we use only validation and testing samples. 
+ 
+ 
+Figure S4: T-SNE Analysis using (a) SAM and (b) MariNeXt featur es for Marine Debris, Ship, Natural 
+Organic Material and Sea snot. For fair comparison, we use only validation and testing samples. 
+ 
+ 
+ 

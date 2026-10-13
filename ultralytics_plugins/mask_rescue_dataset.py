@@ -371,15 +371,21 @@ class MaskRescueNPYDataset(YOLODataset):
         
         parsed_cp_classes = None
         if use_classaware_cp:
+            if isinstance(cp_classes, str):
+                parsed_cp_classes = [int(x) for x in cp_classes.split(",") if x.strip()]
+            elif isinstance(cp_classes, (list, tuple)):
+                parsed_cp_classes = [int(x) for x in cp_classes]
+            print(f"  parsed_cp_classes: {parsed_cp_classes}")
+
             # Reuse the standard Ultralytics pipeline, swapping CopyPaste with our class-aware variant.
             transforms = super().build_transforms(hyp)
-            
+
             def patch_copypaste(op_list):
                 """Recursively patch CopyPaste in transform list or Compose."""
                 patched = []
                 for op in op_list:
                     if isinstance(op, CopyPaste):
-                        print(f"[PATCH] Replacing CopyPaste(p={{op.p}}) with ClassAwareCopyPaste(classes={{parsed_cp_classes}})")
+                        print(f"[PATCH] Replacing CopyPaste(p={op.p}) with ClassAwareCopyPaste(classes={parsed_cp_classes})")
                         patched.append(ClassAwareCopyPaste(p=op.p, allowed_classes=parsed_cp_classes))
                     elif isinstance(op, Compose):
                         # Recursively patch inner Compose (e.g., Mosaic internal transforms)

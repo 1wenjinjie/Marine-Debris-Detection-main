@@ -1,0 +1,10 @@
+path: D:\OceanEdge_Group\Marine-Debris-Detection-main\data\processed\marida_mpb_v1\datasets\scene_6ch_min8
+train: train.txt
+val: val.txt
+test: test.txt
+channels: 6
+nc: 3
+names:
+  0: Marine_Debris
+  1: Algae_Organic
+  2: Ship

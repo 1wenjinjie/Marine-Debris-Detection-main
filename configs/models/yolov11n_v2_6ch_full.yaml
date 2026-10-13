@@ -1,0 +1,49 @@
+# YOLOv11n for MARIDA v2 - 6 channels, 3 classes, Full teacher-task model
+# Components:
+#   1. CBAM after backbone C3k2 outputs (P2/P3/P4/P5)
+#   2. BiFPN-lite weighted neck fusion
+#   3. EIoU box loss supplied by scripts/v2_full_train.py
+#
+# IMPORTANT:
+# - CBAM c1 values are pre-scaled for scale=n.
+# - WeightedConcat requires install_bifpn_patch() before model construction.
+ch: 6
+nc: 3
+scales:
+  n: [0.50, 0.25, 1024]
+
+backbone:
+  - [-1, 1, Conv, [64, 3, 2]]                  # 0  P1/2          (out: 16)
+  - [-1, 1, Conv, [128, 3, 2]]                 # 1  P2/4          (out: 32)
+  - [-1, 2, C3k2, [256, False, 0.25]]          # 2  P2/4 features (out: 64)
+  - [-1, 1, CBAM, [64, 7]]                     # 3  P2 attention
+  - [-1, 1, Conv, [256, 3, 2]]                 # 4  P3/8          (out: 64)
+  - [-1, 2, C3k2, [512, False, 0.25]]          # 5  P3/8 features (out: 128)
+  - [-1, 1, CBAM, [128, 7]]                    # 6  P3 attention
+  - [-1, 1, Conv, [512, 3, 2]]                 # 7  P4/16         (out: 128)
+  - [-1, 2, C3k2, [512, True]]                 # 8  P4/16 features (out: 128)
+  - [-1, 1, CBAM, [128, 7]]                    # 9  P4 attention
+  - [-1, 1, Conv, [1024, 3, 2]]                # 10 P5/32         (out: 256)
+  - [-1, 2, C3k2, [1024, True]]                # 11 P5/32 features (out: 256)
+  - [-1, 1, CBAM, [256, 7]]                    # 12 P5 attention
+  - [-1, 1, SPPF, [1024, 5]]                   # 13
+  - [-1, 2, C2PSA, [1024]]                     # 14 P5/32
+
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 15
+  - [[-1, 9], 1, WeightedConcat, [1, 2]]       # 16 weighted P5->P4 + P4-attn
+  - [-1, 2, C3k2, [512, False]]                # 17
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 18
+  - [[-1, 6], 1, WeightedConcat, [1, 2]]       # 19 weighted P4->P3 + P3-attn
+  - [-1, 2, C3k2, [256, False]]                # 20 P3/8 detect output
+
+  - [-1, 1, Conv, [256, 3, 2]]                 # 21
+  - [[-1, 17, 9], 1, WeightedConcat, [1, 3]]   # 22 BiFPN-lite bottom-up P4 fusion
+  - [-1, 2, C3k2, [512, False]]                # 23 P4/16 detect output
+
+  - [-1, 1, Conv, [512, 3, 2]]                 # 24
+  - [[-1, 14], 1, WeightedConcat, [1, 2]]      # 25 weighted P4->P5 + P5
+  - [-1, 2, C3k2, [1024, True]]                # 26 P5/32 detect output
+
+  - [[20, 23, 26], 1, Detect, [nc]]            # 27

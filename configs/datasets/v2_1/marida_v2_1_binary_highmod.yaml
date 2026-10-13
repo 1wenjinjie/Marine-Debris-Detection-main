@@ -1,0 +1,28 @@
+# MARIDA v2.1 dataset config — binary Marine_Debris instance segmentation
+# Conforms to docs/paper/v2_1/v2_1_DATASET_SPEC.md
+#
+# This config is consumed by MaskRescueSegTrainer_v2_1; the dataset
+# class is overridden in the trainer so the standard Ultralytics
+# YOLODataset is NOT used.
+
+# Absolute path to v2.1 dataset root. Adjust per machine.
+path: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/marida_v2_1
+
+# Split manifests — directories containing .npy images. Ultralytics will
+# recursively glob each directory for IMG_FORMATS extensions (which the
+# v2.1 plugin patches to include .npy).
+train: train/images
+val:   val/images
+test:  test/images
+
+# Binary classification: 1 class
+nc: 1
+names:
+  0: Marine_Debris
+
+# v2.1-specific keys (read by MaskRescueSegTrainer_v2_1)
+channels: 9
+channel_stats: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/marida_v2_1/channel_stats_9ch_train_water.json
+valid_mask_subdir:     valid_masks
+instance_mask_subdir:  instance_masks_highmod
+label_set:             highmod   # main experiment per SPEC §6

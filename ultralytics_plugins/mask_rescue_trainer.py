@@ -28,7 +28,10 @@ class MaskRescueTrainer(DetectionTrainer):
             batch_size=batch or self.args.batch,
             augment=mode == "train",
             hyp=self.args,
-            rect=self.args.rect if mode == "train" else True,
+            # MARIDA patches are square. Keep validation at the locked imgsz so
+            # AP evaluation and per-patch operating-point inference share the
+            # same geometry instead of rect-batch-dependent 544 px padding.
+            rect=self.args.rect if mode == "train" else False,
             cache=self.args.cache or None,
             single_cls=self.args.single_cls or False,
             stride=stride,

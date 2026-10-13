@@ -1,0 +1,76 @@
+{
+  "source_csv": "docs\\paper\\v1_test_per_tile.csv",
+  "n_tiles": 73,
+  "conf_thr": 0.25,
+  "bucket_definitions": [
+    {
+      "label": "coastal (<5 km)",
+      "min_km": 0.0,
+      "max_km": 5.0
+    },
+    {
+      "label": "nearshore (5-20 km)",
+      "min_km": 5.0,
+      "max_km": 20.0
+    },
+    {
+      "label": "offshore (>20 km)",
+      "min_km": 20.0,
+      "max_km": null
+    }
+  ],
+  "buckets": {
+    "coastal (<5 km)": {
+      "n_tiles": 41,
+      "n_gt": 63,
+      "n_tp": 43,
+      "n_fp": 25,
+      "n_fn": 20,
+      "P": 0.632,
+      "R": 0.683,
+      "F1": 0.656,
+      "dist_min_km": 0.1,
+      "dist_max_km": 4.9,
+      "dist_median_km": 2.0
+    },
+    "nearshore (5-20 km)": {
+      "n_tiles": 25,
+      "n_gt": 34,
+      "n_tp": 23,
+      "n_fp": 22,
+      "n_fn": 11,
+      "P": 0.511,
+      "R": 0.676,
+      "F1": 0.582,
+      "dist_min_km": 5.3,
+      "dist_max_km": 19.5,
+      "dist_median_km": 11.0
+    },
+    "offshore (>20 km)": {
+      "n_tiles": 7,
+      "n_gt": 11,
+      "n_tp": 2,
+      "n_fp": 2,
+      "n_fn": 9,
+      "P": 0.5,
+      "R": 0.182,
+      "F1": 0.267,
+      "dist_min_km": 20.1,
+      "dist_max_km": 120.6,
+      "dist_median_km": 21.7
+    }
+  },
+  "overall": {
+    "n_tiles": 73,
+    "n_gt": 108,
+    "n_tp": 68,
+    "n_fp": 49,
+    "n_fn": 40,
+    "P": 0.581,
+    "R": 0.63,
+    "F1": 0.604,
+    "dist_min_km": 0.1,
+    "dist_max_km": 120.6,
+    "dist_median_km": 4.3
+  }
+}

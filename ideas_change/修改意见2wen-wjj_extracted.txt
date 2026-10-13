@@ -1,0 +1,63 @@
+4.1 题目
+题目必须体现“海洋垃圾监测可靠性”，不要突出YOLO、BiFPN或NDWI。建议英文题目二选一：
+Evaluation leakage in Sentinel-2 monitoring of floating marine debris: A scene-independent reassessment using MARIDA
+Reliable satellite monitoring of floating marine debris: Auditing scene dependence and label-derived inputs in MARIDA
+4.2 摘要
+现摘要过长、防御性过强，并混入未完成实验说明。按MPB逻辑重写为五个信息单元：管理问题、研究目标、数据与统一审计方法、核心结果、管理含义。摘要中不要出现“正式投稿前需”“不声称”等内部语句。局限性保留一句即可。
+开头说明卫星监测用于大范围筛查，但泄露会虚高跨场景可靠性。
+方法只写最终完成的统一2×2设计和候选事件定义。
+结果只报告主效应、独立scene测试和管理工作点。
+明确高召回与高精度对应不同核查策略。
+结尾说明系统适合候选筛查与优先级排序，不适合自动垃圾确认。
+4.3 引言
+引言由三段扩展为五段，至少完成以下逻辑：
+1.海洋垃圾对航运、渔业、海岸清理和生态治理的影响，以及大范围监测需求。
+2.Sentinel-2的优势和限制，包括10 m分辨率、云、白浪、海况和光谱混淆。
+3.现有FDI、分类、分割、目标检测和MARIDA研究的系统综述。
+4.评估泄露对管理决策的后果：漏检风险、核查负担和新海域泛化误判。
+5.提出可检验研究问题或假设，而不是罗列四项工作。
+4.4 方法
+方法建议重组为以下小节：
+Data source and study scenes
+Candidate-event definition and label conversion
+Leakage audit design
+Scene-independent splitting
+Spectral inputs and preprocessing
+Detection models and training
+Evaluation and uncertainty
+Management-oriented operating points
+每个步骤要达到他人可以复现的程度，尤其要给出重采样算法、无效像素处理、归一化统计、连通域规则、bbox padding、NMS、实例匹配、阈值选择和软件版本。
+4.5 结果
+4.5.1 泄露效应
+统一2×2实验完成前，标题只能写“historical versus corrected workflow”。完成主效应和交互效应后，才可使用“effect of leakage”。
+4.5.2 模型消融
+MPB正文不需要大量CBAM、EIoU工程细节。正文只保留基线、最终候选模型和主终点；完整消融、参数量和训练曲线移入Supplementary Material。
+4.5.3 管理工作点
+新增管理工作点表，不再围绕单一最佳F1叙述。至少报告高召回筛查、平衡工作点和高精度核查三个场景。阈值必须由验证集锁定。
+管理情景核心目标应报告的量建议用途
+高召回筛查尽量少漏检P、R、每100 patch报警数、FN卫星初筛，后续核查资源充足
+平衡工作点兼顾漏检与核查量P、R、F1、报警量常规区域监测
+高精度核查减少无效出动P、R、FP及被放弃候选数船舶或无人机资源有限
+4.5.4 竞争基线
+FDI和NDWI阈值过弱，不能据此宣称深度检测不可替代。至少增加随机森林或XGBoost光谱基线、分割后连通域实例化，以及一个轻量六通道学习基线。全部参数在验证集选择。
+4.6 图表
+所有正文图改为英文，统一字体、颜色、线宽和缩写。
+按MPB双栏缩放后检查文字可读性。
+增加“泄露如何进入监测流程”的概念图。
+检测样例必须同时展示成功、误报和漏检，并标出scene、距岸类别、GT数、预测数和置信度。
+空间分布图移至数据章节。
+可靠性图若不是主贡献，移入补充材料。
+所有图注必须独立可读，解释样本量、误差棒和阈值来源。
+4.7 讨论
+讨论必须从机器学习自辩转向海洋垃圾监测质量控制。重组为：
+6.Implications for satellite monitoring quality assurance：scene独立、输入来源、统计隔离和阈值锁定。
+7.Consequences for management decisions：漏检风险、误报核查负担及优先级错误。
+8.Appropriate operational role：只用于区域初筛和候选排序，不能自动确认垃圾。
+9.Limits of Sentinel-2 detection：小目标、云、白浪、尾迹、有机漂浮物、海况和太阳耀斑。
+10.Limitations and future validation：只保留完成实验后仍客观存在的限制。
+4.8 结论
+结论不要以“哪些话不能说”为主体。最终必须正面回答四个问题：
+哪一种评估错误导致多大程度的性能高估？
+修正后独立scene上的能力区间是多少？
+系统适合何种管理用途，不适合何种用途？
+海洋垃圾遥感监测应遵守哪些最低质量控制要求？

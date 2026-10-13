@@ -1,0 +1,29 @@
+# v1 7ch tiles with PHYSICAL 7th channel (NDWI inverse), on v2 scene-clean split.
+#
+# Difference from marida_v1_on_v2split_7ch.yaml:
+# - 7th channel is (1 - NDWI) / 2 = (1 - (B3-B8)/(B3+B8)) / 2
+# - Computed deterministically from spectral bands. No GT dependence.
+# - Floating objects (debris, algae) have NIR > Green => high prior value.
+# - Pure water => prior ~0.
+#
+# Use this to quantify how a PHYSICAL prior compares to (a) GT oracle and
+# (b) no prior. See docs/paper/7CH_BASELINE_CURRENT_AUDIT_2026-05-18.md.
+
+path: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/mask_bbox_rescue_split_physidx
+train: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/mask_bbox_rescue_split_physidx_v2split/train.txt
+val: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/mask_bbox_rescue_split_physidx_v2split/val.txt
+test: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/mask_bbox_rescue_split_physidx_v2split/test.txt
+
+nc: 7
+names:
+  - Marine_Debris
+  - Dense_Sargassum
+  - Sparse_Sargassum
+  - Natural_Organic
+  - Ship
+  - Foam
+  - Wakes
+channels: 7
+
+task: detect
+mode: train

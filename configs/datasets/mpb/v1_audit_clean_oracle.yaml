@@ -1,0 +1,14 @@
+path: D:\OceanEdge_Group\Marine-Debris-Detection-main\data\processed\marida_mpb_v1\datasets\v1_audit_clean_oracle
+train: train.txt
+val: val.txt
+test: test.txt
+channels: 7
+nc: 7
+names:
+  0: Marine_Debris
+  1: Dense_Sargassum
+  2: Sparse_Sargassum
+  3: Natural_Organic
+  4: Ship
+  5: Foam
+  6: Wakes

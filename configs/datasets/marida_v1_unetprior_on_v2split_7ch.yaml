@@ -1,0 +1,28 @@
+# v1 7ch tiles with U-Net Marine_Debris probability as ch7 (replaces NDWI-inverse).
+#
+# - ch0-5: B4 B3 B2 B8 B11 B12 spectral
+# - ch6:   U-Net learned Marine_Debris probability [0,1]
+#         train tiles -> K-fold cross-prediction (leak-free)
+#         val/test    -> seed=0 U-Net (full v2 train) prediction
+#
+# Built by scripts/preprocessing/build_v1_unetprior.py.
+# See docs/paper/7CH_BASELINE_CURRENT_AUDIT_2026-05-18.md for the unetprior section.
+
+path: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/mask_bbox_rescue_split_unetprior_v2split
+train: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/mask_bbox_rescue_split_unetprior_v2split/train.txt
+val: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/mask_bbox_rescue_split_unetprior_v2split/val.txt
+test: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/mask_bbox_rescue_split_unetprior_v2split/test.txt
+
+nc: 7
+names:
+  - Marine_Debris
+  - Dense_Sargassum
+  - Sparse_Sargassum
+  - Natural_Organic
+  - Ship
+  - Foam
+  - Wakes
+channels: 7
+
+task: detect
+mode: train

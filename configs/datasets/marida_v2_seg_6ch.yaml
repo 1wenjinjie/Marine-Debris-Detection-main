@@ -1,0 +1,16 @@
+# MARIDA v2-seg dataset - 6 spectral channels (B4,B3,B2,B8,B11,B12)
+# Instance segmentation (3 classes), polygon labels, reuses v2 scene-level split
+path: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/marida_v2_seg
+train: train.txt
+val: val.txt
+test: test.txt
+
+nc: 3
+names:
+  - Marine_Debris
+  - Algae_Organic
+  - Ship
+channels: 6
+
+task: segment
+mode: train

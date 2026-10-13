@@ -1,0 +1,235 @@
+
+
+===== PAGE 1 =====
+1 
+ 
+Detecting Marine Pollutants and Sea Surface Features with Deep 
+Learning in Sentinel-2 Imagery  
+ 
+Katerina Kikaki a,b,*, Ioannis Kakogeorgioua, Ibrahim Hoteitc, Konstantinos Karantzalosa 
+a Remote Sensing Laboratory, National Technical University of Athens, Athens, Zografou, Greece 
+b Institute of Oceanography, Hellenic Centre for Marine Research, Athens, Anavyssos, Greece 
+c Physical Sciences and Engineering Division, King Abdullah University of Science and Technology, Saudi 
+Arabia 
+ 
+Supplementary Material 
+Table S1: The sites where publications and reports were collected for MADOS construction. 
+Site  Publications Reports 
+Marine debris 
+Global (Kikaki et al., 2022) (MARIDA)  
+Guatemala & Honduras (Kikaki et al., 2020) Caroline Power (Citizen scientist) 
+Haiti (Kikaki et al., 2022) 4ocean Clean-ups 
+Manila, Philippines (Gonzaga et al., 2021)  
+Calabria, Italy (Sannigrahi et al., 2022)  
+Beirut, Lebanon (Sannigrahi et al., 2022)  
+Oil spills 
+Zakynthos Isl., Greece (Kolokoussis and Karathanassi, 2018)  
+Saronikos Gulf, Greece (Parinos et al., 2019)  
+Mauritius (Rajendran et al., 2021) https://www.youtube.com/watch?v=kDOobamVtAA&
+ab_channel=GuardianNews 
+Solomon Isl.  https://www.solomontimes.com/news/growing-
+concerns-over-bulker-oil-spill/8889 
+East China Sea (Sun et al., 2018)  
+Red Sea (Vankayalapati et al., 2023)  
+Peru  (Mega, 2022) 
+Arabian Gulf (Zhao et al., 2014), (Sardi et al., 2020) KAUST & NTUA reports and analysis 
+Jellyfish 
+Nova Scotia (Qi et al., 2020)  
+Sea snot 
+Marmara Sea (Hu et al., 2022)  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+===== PAGE 2 =====
+2 
+ 
+Table S2: Patches and pixels class distribution (%) for the train, validation and test sets in MADOS. 
+Set MD DenS SpFA NatM Ship Oil MWater SLWater Foam TWater SWater Wav es OilPlat Jellyfish Sea snot
+ Patches 
+Train 17.45 3.07 6.21 3.63 9.56 14.24 48.92 2.02 2.16 8.72 5.02 6.84 10.4 0.42 2.16 
+Validation 15.26 1.87 4.83 3.43 11.68 11.99 47.82 2.34 2.02 7.32 4.52 9.19 14.33 0.62 2.49 
+Test 17.03 2.88 5.08 2.47 11.81 10.99 48.35 1.79 1.92 8.24 5.36 9.2 14.7 0.27 2.2 
+MADOS 
+Total 16.84 2.75 5.6 3.28 10.63 12.88 48.52 2.03 2.07 8.28 4.99 7.99 12.42 0.43 2.25 
+ Pixels 
+Train 0.34 0.24 0.34 0.14 0.78 18.45 34.77 20.64 0.06 11.69 9.19 1.31 0.92 0.18 0.96 
+Validation 0.32 0.33 0.18 0.03 1.04 11.86 25.77 35.06 0.1 10.91 11.17 1.12 1.1 0.26 0.75 
+Test 0.27 0.36 0.49 0.08 0.99 14.27 38.62 25.82 0.11 11.68 3.53 1.77 1.33 0.08 0.62 
+MADOS 
+Total 0.32 0.29 0.34 0.1 0.89 15.84 33.53 25.39 0.08 11.5 8.29 1.38 1.06 0.17 0.83 
+ 
+ 
+Table S3: F1 scores of SegNeXt, U-Net and MariNeXt models over the different Batch sizes. The scores 
+are measured on MADOS test set and averaged over five trials. 
+Method 
+Batch Size 
+5 10 15 20 
+U-Net 53.6 59.7 63.8 61.2 
+SegNeXt 60.6 58.5 54.9 52.2 
+MariNeXt 76.0 74.4 69.1 62.0 
+ 
+ 
+Table S4: Per class evaluation of our employed strategies on MADOS test set using F1 score, averaged 
+over five trials.  
+Method 
+F1-Score 
+MD DenS SpFA NatM Ship Oil MWater SLWater Foam TWater SWater Wa ves OilPlat Jellyfish Sea 
+snot 
+MariNeXt 
+(Without 
+1st Stage) 
+39.5 63.5 71.8 55.3 54 77.2 87.6 99.9 61.1 87 64.9 35.6 82.9 81 .6 72.8 
+MariNeXt 
+(Without 
+TTA+VSCP) 
+45.6 72.0 76.6 30.6 61. 3 80.2 90.0 98.4 66. 8 86.4 56.3 43.2 83. 4 25.9 77.2 
+MariNeXt 51.3 81.2 84.3 57.2 62. 8 78.3 90.7 99.6 87.1 90.1 63.7  37.7 84.3 90.0 81.4 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+===== PAGE 3 =====
+3 
+ 
+ 
+ 
+Figure S1: Classification results obtained by our MariNeXt fram ework. We demonstrat e representative 
+cases of: a) Ships, Wakes, Natural Organic Material and Marine Water, b) Ships, Wakes, Shallow & 
+Marine Water, c) Natural Organic Material, Marine Water and haz e, d) Dense & sparse Sargassum, 
+Marine Water and haze, e) Oil Spill, Oil Platform and Marine Wa ter, and f) Shallow & Marine Water, Oil 
+Platform. The RGB images were stretched for illustration purpos es. Land, Clouds and thin clouds are 
+masked with black color. 
+ 
+
+
+===== PAGE 4 =====
+4 
+ 
+ 
+Figure S2: T-SNE Analysis on MADOS dataset using Spectral Angle  Mapping for Marine Debris and Oil 
+Spill. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+===== PAGE 5 =====
+5 
+ 
+ 
+Figure S3: T-SNE Analysis using (a) SAM and (b) MariNeXt features for Oil Spill Waves & Wakes and 
+Marine Water. For fair comparison, we use only validation and testing samples. 
+ 
+ 
+Figure S4: T-SNE Analysis using (a) SAM and (b) MariNeXt featur es for Marine Debris, Ship, Natural 
+Organic Material and Sea snot. For fair comparison, we use only validation and testing samples. 
+ 
+ 
+ 
+
+
+===== PAGE 6 =====
+6 
+ 
+ 
+Figure S5: T-SNE Analysis on MADOS dataset using SAM for Marine Water, Foam, Turbid Water, 
+Shallow Water, Waves & Wakes and Sediment-Laden Water. 
+ 
+Text S1: Regarding other classes, DenS and SpFA are well-distinguishable, with relatively high 
+F1 scores of over 80% (Table 5, Figure 5). This is in accordance with the literature that has 
+indicated that Sargassum has unique spectral behavior that differs from other floating 
+materials and algae species (Hu et al., 2015; Qi and Hu, 2021).  Nevertheless, based on our 
+experiments and the MADOS dataset, spFA c a n  b e  c o n f u s e d  w i t h  DenS or other floating 
+vegetation (i.e., NatM when vegetation is prominent) (Table 5, Figure 5 and Figure S1 c,d). 
+Moreover, man-made classes like OilPlat a n d  Ship, composed of similar materials, are 
+expectedly grouped together in the T-SNE diagram (Figure S6a). Interestingly the Jellyfish 
+class, which does not form a distinct cluster in the T-SNE plot, is mainly dispersed in categories 
+of relatively high-intensity values like OilPlat and Ship. Previous studies (Van der Zande et al., 
+2014) have indicated through laboratory observations that Jellyfish reflectance spectra 
+resemble those of transparent plastic bottles. However, we demo nstrate that dense Jellyfish 
+trajectories can be spectrally close to dense polymer and/or ar tificial classes. MariNeXt 
+managed to capture the different spatial patterns of OilPlat, Ship and Jellyfish, resulting in a 
+relatively small number of misclassification cases (Figure 5d, Figure S6b, Figure S1a,b,e,f). 
+ 
+
+
+===== PAGE 7 =====
+7 
+ 
+ 
+Figure S6: T-SNE Analysis using (a) SAM and (b) MariNeXt features for Ship, Oil Platform and Jellyfish. 
+For fair comparison, we use only validation and testing samples. 
+ 
+References 
+Gonzaga, M.L.R., Wong, M.T.S., Blanco, A.C., Principe, J.A., 2021. Utilization of SENTINEL-2 Imagery in the 
+Estimation of Plastics among Floating Debris Along the Coast of Manila Bay. ISPRS - International Archives of the 
+Photogrammetry, Remote Sensing and Spatial Information Sciences 46W6, 177–184. 
+https://doi.org/10.5194/isprs-archives-XLVI-4-W6-2021-177-2021 
+Hu, C., Feng, L., Hardy, R.F., Hochberg, E.J., 2015. Spectral and spatial requirements of remote measurements of 
+pelagic Sargassum macroalgae. Remote Sensing of Environment, Special Issue on the Hyperspectral Infrared 
+Imager (HyspIRI) 167, 229–246. https://doi.org/10.1016/j.rse.2015.05.022 
+Hu, C., Qi, L., Xie, Y., Zhang, S., Barnes, B.B., 2022. Spectral characteristics of sea snot reflectance observed from 
+satellites: Implications for remote sensing of marine debris. Remote Sensing of Environment 269, 112842. 
+https://doi.org/10.1016/j.rse.2021.112842 
+Kikaki, A., Karantzalos, K., Power, C.A., Raitsos, D.E., 2020. Remotely Sensing the Source and Transport of Marine 
+Plastic Debris in Bay Islands of Honduras (Caribbean Sea). Remote Sensing 12, 1727. 
+https://doi.org/10.3390/rs12111727 
+Kikaki, K., Kakogeorgiou, I., Mikeli, P., Raitsos, D.E., Karantzalos, K., 2022. MARIDA: A benchmark for Marine 
+Debris detection from Sentinel-2 remote sensing data. PLOS ONE 17, e0262247. 
+https://doi.org/10.1371/journal.pone.0262247 
+Kolokoussis, P., Karathanassi, V., 2018. Oil Spill Detection and Mapping Using Sentinel 2 Imagery. Journal of 
+Marine Science and Engineering 6, 4. https://doi.org/10.3390/jmse6010004 
+Mega, E.R., 2022. Unprecedented oil spill catches researchers in Peru off guard. Nature. 
+https://doi.org/10.1038/d41586-022-00333-x 
+Parinos, C., Hatzianestis, I., Chourdaki, S., Plakidi, E., Gogou, A., 2019. Imprint and short-term fate of the Agia Zoni 
+II tanker oil spill on the marine ecosystem of Saronikos Gulf. Science of The Total Environment 693, 133568. 
+https://doi.org/10.1016/j.scitotenv.2019.07.374 
+Qi, L., Hu, C., 2021. To what extent can Ulva and Sargassum be detected and separated in satellite imagery? 
+Harmful Algae 103, 102001. https://doi.org/10.1016/j.hal.2021.102001 
+
+
+===== PAGE 8 =====
+8 
+ 
+Qi, L., Hu, C., Mikelsons, K., Wang, M., Lance, V., Sun, S., Barnes, B.B., Zhao, J., Van der Zande, D., 2020. In search 
+of floating algae and other organisms in global oceans and lakes. Remote Sensing of Environment 239, 111659. 
+https://doi.org/10.1016/j.rse.2020.111659 
+Rajendran, S., Vethamony, P., Sadooni, F.N., Al-Kuwari, H.A.-S., Al-Khayat, J.A., Seegobin, V.O., Govil, H., Nasir, S., 
+2021. Detection of Wakashio oil spill off Mauritius using Sentinel-1 and 2 data: Capability of sensors, image 
+transformation methods and mapping. Environmental Pollution 274, 116618. 
+https://doi.org/10.1016/j.envpol.2021.116618 
+Sannigrahi, S., Basu, B., Basu, A.S., Pilla, F., 2022. Development of automated marine floating plastic detection 
+system using Sentinel-2 imagery and machine learning models. Marine Pollution Bulletin 178, 113527. 
+https://doi.org/10.1016/j.marpolbul.2022.113527 
+Sardi, S.S., Qurban, M.A., Li, W., Kadinjappalli, K.P., Manikandan, P.K., Hariri, M.M., Tawabini, B.S., Khalil, A.B., El-
+Askary, H., 2020. Assessment of areas environmentally sensitive to oil spills in the western Arabian Gulf, Saudi 
+Arabia, for planning and undertaking an effective response. Marine Pollution Bulletin 150, 110588. 
+https://doi.org/10.1016/j.marpolbul.2019.110588 
+Sun, S., Lu, Y., Liu, Y., Wang, M., Hu, C., 2018. Tracking an Oil Tanker Collision and Spilled Oils in the East China 
+Sea Using Multisensor Day and Night Satellite Imagery. Geophysical Research Letters 45, 3212–3220. 
+https://doi.org/10.1002/2018GL077433 
+Van der Zande, D., Green, J., Ruddick, K., 2014. JellySpec: feasibility study for determining the spectral 
+characteristics of jellyfish from Belgian waters. Ocean Optics XXII, Portland, USA. 
+Vankayalapati, K., Dasari, H.P., Langodan, S., El Mohtar, S., Sanikommu, S., Asfahani, K., Desamsetti, S., Hoteit, I., 
+2023. Multi-Mission Satellite Detection and Tracking of October 2019 Sabiti Oil Spill in the Red Sea. Remote 
+Sensing 15, 38. https://doi.org/10.3390/rs15010038 
+Zhao, J., Temimi, M., Ghedira, H., Hu, C., 2014. Exploring the potential of optical remote sensing for oil spill 
+detection in shallow coastal waters-a case study in the Arabian Gulf. Opt. Express, OE 22, 13755–13772. 
+https://doi.org/10.1364/OE.22.013755 
+ 

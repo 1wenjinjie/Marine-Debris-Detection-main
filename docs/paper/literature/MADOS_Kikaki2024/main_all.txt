@@ -1,0 +1,1761 @@
+
+
+===== PAGE 1 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+Available online 7 March 2024
+0924-2716/© 2024 The Author(s). Published by Elsevier B.V. on behalf of International Society for Photogrammetry and Remote Sensing, Inc. (ISPRS). This is an
+open access article under the CC BY license ( http://creativecommons.org/licenses/by/4.0/).
+Detecting Marine pollutants and Sea Surface features with Deep learning in 
+Sentinel-2 imagery 
+Katerina Kikaki
+a , b , *
+, Ioannis Kakogeorgiou
+a
+, Ibrahim Hoteit
+c
+, Konstantinos Karantzalos
+a 
+a
+Remote Sensing Laboratory, National Technical University of Athens, Athens, Zografou, Greece 
+b
+Institute of Oceanography, Hellenic Centre for Marine Research, Athens, Anavyssos, Greece 
+c
+Physical Sciences and Engineering Division, King Abdullah University of Science and Technology, Saudi Arabia   
+ARTICLE INFO  
+Keywords: 
+Sentinel-2 
+Deep Learning 
+Benchmark 
+Data Augmentation 
+Marine Pollution 
+Marine Debris 
+Oil Spill 
+ABSTRACT  
+Despite the significant negative impact of marine pollution on the ecosystem and humans, its automated 
+detection and tracking from the broadly available satellite data is still a major challenge. In particular, most 
+research and development efforts focus on one specific pollutant implementing, in most cases, binary classifi -
+cation tasks, e.g., detect Plastics or no Plastics , or target a limited number of classes, such as Oil Spill , Look-alikes 
+and Water . Moreover, most developed algorithms tend to operate successfully only locally, failing to scale and 
+generalize adequately towards operational deployments. Our aim is to address these challenges by introducing a 
+holistic approach towards marine pollutant detection using remote sensing. We argue that constructing such 
+operational solutions requires detectors trained and tested against different types of pollutants, various sea 
+surface features and water-related thematic classes. We offer such a Marine Debris and Oil Spill (MADOS) 
+dataset, composed of high-resolution multispectral Sentinel-2 (S2) data, consisting of 174 scenes captured 
+between 2015 and 2022, with approximately 1.5 M annotated pixels , which are globally distributed and 
+collected under various weather conditions. Moreover, we propose a novel Deep Learning (DL) framework 
+named MariNeXt, based on recent state-of-the-art architectural advancements for semantic segmentation, which 
+outperforms all baselines by at least 12 % in F
+1 
+and mIoU metrics. The extensive quantitative and qualitative 
+validation justifies our choices and demonstrates the high potential of the proposed approach. We further discuss 
+the underlying discrimination challenges among the competing thematic classes. Our dataset, code and trained 
+models are openly available at https://marine-pollution.github.io/ .   
+1. Introduction 
+Marine pollutants, such as oil and litter, have been a global concern 
+due to their adverse impact on marine life, human health and the econ -
+omy ( Barboza et al., 2018; Beaumont et al., 2019; Shahidul Islam and 
+Tanaka, 2004 ). This global threat has been recognized in the UN Sus -
+tainable Development Goals (SDGs) under Goal 14, i.e., to conserve and 
+use the oceans, seas and marine resources for sustainable development 
+( Walker, 2021 ). In particular, the main objective by 2025 is the preven -
+tion and significant reduction of marine pollution of all kinds. 
+Effective marine monitoring systems are crucial for tackling marine 
+pollution and achieving sustainable goals. Detecting and monitoring 
+marine pollution have already received a vast amount of research and 
+development efforts. Current approaches rely mainly on in situ cam -
+paigns via conventional methods, e.g., ships, nets, trawls, laboratory 
+analysis etc. ( Cadiou et al., 2020; Eriksen et al., 2018; Parinos et al., 
+2019 ) as well as remote sensing data due to several and significant 
+benefits. Indeed, satellite remote sensing provides cost-effective and 
+frequent measurements of the sea surface at large spatial scales, sup -
+porting successfully automated detection systems ( Krestenitis et al., 
+2019; Sannigrahi et al., 2022; Temitope Yekeen and Balogun, 2020; 
+Wang and Hu, 2021a ). 
+However, most remote sensing methods have been designed to detect 
+a single sea surface feature or a small number of categories without 
+taking into consideration other competing classes. This fact usually re -
+sults in several false positives e.g., natural Water formations are classi -
+fied as Plastics , Water class is misclassified as Other class ( Heiselberg, 
+2020; Sannigrahi et al., 2022; Sol ´e G ´omez et al., 2022 ). Operational 
+marine monitoring solutions should be designed to accurately identify 
+any sea surface feature or water-related class while being false-alarm 
+* Corresponding author. 
+E-mail address: akikakh@central.ntua.gr (K. Kikaki).  
+Contents lists available at ScienceDirect 
+ISPRS Journal of Photogrammetry and Remote Sensing 
+journal homepage: www.else vier.com/loc ate/isprsjprs 
+https://doi.org/10.1016/j.isprsjprs.2024.02.017 
+Received 22 June 2023; Received in revised form 18 February 2024; Accepted 21 February 2024   
+
+
+===== PAGE 2 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+40
+resistant under complex weather and sea state conditions. Additionally, 
+in some cases, marine classes
+1 
+present similar spectral and spatial pat -
+terns which pose additional challenges on classification tasks in optical 
+satellite images. For instance, Sea snot has been recently considered to 
+significantly influence Marine Debris detection ( Hu et al., 2022 ). At the 
+same time, the discrimination of floating matters in radar data is 
+regarded by far more difficult ( Qi et al., 2022 ). 
+Towards exploring the unique characteristics of marine pollutants 
+and other floating materials, spectral analysis has been performed with 
+optical imagery, also considering the competing thematic classes ( Hu, 
+2022; Qi et al., 2020; Qi and Hu, 2021 ). Apart from the spectral 
+methods, only a limited number of studies have considered advanced 
+Machine Learning (ML) techniques that exploit other patterns (e.g., 
+spatial) and try to address the detection of challenging cases such as 
+small and texture-complex floating objects ( Kikaki et al., 2022; Mifdal 
+et al., 2021; Mikeli et al., 2022 ). 
+Moreover, a small number of optical multispectral datasets exist that 
+are openly available to support spectral analysis studies or research to -
+wards marine monitoring solutions ( Kikaki et al., 2022; Liu et al., 2017; 
+Mifdal et al., 2021 ). This is because identifying and annotating sea 
+surface features in optical satellite data is quite challenging due to the 
+properties of current sensors (e.g., S2 different band resolutions) ( Hu, 
+2022, 2021 ), the complex optical properties of specific features ( Dier -
+ssen, 2019; Garaba and Dierssen, 2018 ), and the rare events of specific 
+floating objects (e.g., large plastic patches). 
+To this end, we aim to confront the aforementioned challenges by 
+introducing a new benchmark dataset with several competing marine 
+classes that formulates a challenging semantic segmentation task using 
+sparse annotations. We also propose a novel DL framework for the 
+detection of the considered thematic classes. Specifically, we make the 
+following contributions:  
+o We introduce a new well-curated benchmark dataset with 15 diverse 
+thematic classes: e.g., floating Marine Debris , Oil Spill , Sargasssum 
+macroalgae, Ship , Oil Platform , Sea snot , water-related classes, etc., 
+named MADOS, which is globally distributed, based on 174 Sentinel- 
+2 scenes collected under different weather and sea conditions, con -
+sisting of approximately 1.5 M annotated pixels.  
+o We propose a novel deep detection framework called MariNeXt 
+based on the SegNeXt ( Guo et al., 2022 ) architecture, which in -
+corporates three improvement strategies in modeling, training, and 
+testing, outperforming current ML baselines by 12 % and delivering 
+quite promising mapping outcomes. 
+o We elaborate and discuss important findings regarding the discrim -
+ination potentials of the considered thematic classes based on 
+extensive quantitative and qualitative evaluation. 
+2. Background 
+In the following subsections, we briefly refer to existing marine 
+pollution datasets ( section 2.1 ) and methods ( section 2.2 ) focusing both 
+on pollutants (i.e., Oil Spill , Marine Debris ) and on sea surface features (i. 
+e., Sargassum macroalgae, Sea snot , Ships Waves , Wakes ) detection on 
+high-resolution S2 imagery. 
+2.1. Marine pollutants datasets 
+Tables 1 and 2 summarize recent efforts addressing Oil Spill and 
+Marine Debris detection with multispectral S2 data. In particular, they 
+demonstrate that most studies were based on a relatively limited number 
+of S2 images. For Marine Debris, ( Arias et al., 2021; Booth et al., 2023; 
+Duarte and Azevedo, 2023; Kikaki et al., 2020, 2022; Mifdal et al., 2021; 
+Mikeli et al., 2022; Ru ß wurm et al., 2023; Sannigrahi et al., 2022; Sol ´e 
+G ´omez et al., 2022 ) employed more than 15 S2 scenes, while for Oil Spill 
+only Sun et al. (2018) utilized a similar amount of S2 scenes ( Tables 1 
+and 2 ). Additionally, most studies were limited to a single up to a three- 
+year period, while Kikaki et al., (2020,2022); Sun et al. (2018) collected 
+Marine Debris and Oil Spill data for more than six years. Finally, for most 
+studies, the annotated/ reference data were sparse and restricted to one 
+or a few small geographical regions ( Tables 1 and 2 ). We highlight that 
+most of the considered works do not provide publicly available data. 
+Specifically, no Sentinel-2 open-access dataset exists aiming to bench -
+mark Oil Spill detection methods. For Marine Debris , Kikaki et al. (2022) 
+introduced MARIDA, an open-access benchmark dataset that discrimi -
+nates marine litter from several competing classes at a global scale. 
+Mifdal et al. (2021) also openly provided annotations of floating objects 
+(one general class) using globally S2 imagery. 
+2.2. Detection of Marine pollutants and other sea surface features 
+Oil Spill. Oil spill detection from satellite imagery has been exten -
+sively studied over the past few decades ( Al-Ruzouq et al., 2020 ). Spe -
+cifically, radar sensors dominate due to their all-weather and all-day 
+capabilities ( Dong et al., 2022 ). Nevertheless, employing optical data is 
+crucial to separate oil from look-alikes and extract information about oil 
+types and thickness ( Garcia-Pineda et al., 2020; Zhao et al., 2014 ). This 
+subsection reviews recent studies for Oil spill detection based on S2 
+optical imagery presented in Table 1 . 
+To detect Oil Spill , most methods have been focused on spectral 
+indices ( Kolokoussis and Karathanassi, 2018; Rajendran et al., 2021a; 
+Tysi ą c et al., 2022 ) and spectral bands ratios ( Abou Samra and Ali, 2022; 
+Rajendran et al., 2021c, 2021b ) ( Table 1 ). Support Vector Machine 
+(SVM), Gradient Boosting Algorithm ( Argamosa et al., 2022; Tysi ą c 
+et al., 2022 ) and Parallelepiped Supervised Algorithm (PSA) ( Rajendran 
+et al., 2021c ) have also been applied for Oil Spill detection. Most studies 
+were designed to detect one Oil Spill class while only a few ( Rajendran 
+et al., 2021a; Tysi ą c et al., 2022 ) considered five (i.e., Oil Spill , Water , 
+Snow , Vegetation , Wetlands) or six (i.e., Oil Spill , Water , Ground , Vegeta -
+tion , Buildings , Snow ) classes. 
+Marine Debris. Compared to Oil Spill , detecting Marine Debris from 
+spaceborne data is a more recent research field, with S2 MSI being the 
+most frequently used satellite sensor for monitoring marine litter in 
+coastal waters ( Mukonza and Chiang, 2022 ). In particular, many efforts 
+have been concentrated on artificial targets, coupled with various 
+methods e.g., Spectral Indices (SI) ( Themistocleous et al., 2020 ), Spec -
+tral Unmixing (SU), Matched Filtering (MF) ( Topouzelis et al., 2020 ), 
+and ML ( Basu et al., 2021; Jamali and Mahdianpari, 2021 ). In a different 
+direction, other studies have focused on detecting floating Marine 
+Debris in real cases using S2 images ( Table 2 ). 
+Regarding ML, well-established supervised learning techniques, i.e., 
+Naïve Bayes, SVM, Random Forest (RF), U-Net, DeeplabV3 + , as well as 
+Generative Adversarial Networks (GANs) have been applied for various 
+Marine Debris detection tasks ( Table 2 ). Additionally, recently, ( Booth 
+et al., 2023; Mikeli et al., 2022; Olyaei et al., 2022; Ru ß wurm et al., 
+2023 ) proposed novel ML solutions boosting the performance on the 
+open-access MARIDA dataset ( Kikaki et al., 2022 ).Concerning the 
+number of classes, Biermann et al. (2020); Ciappa (2021); Gonzaga et al. 
+(2021) considered five classes, while Kikaki et al. (2022); Mikeli et al. 
+(2022) targeted 11 different thematic classes. 
+Other sea surface features. To extract Sargassum from S2 imagery 
+and remove noise patterns, a fully automated workflow has been sug -
+gested using Convolutional Neural Networks (CNNs) ( Wang and Hu, 
+2021a ). Furthermore, RF has been applied to distinguish Sargassum from 
+Ulva ( Xiao et al., 2022 ) , and VGGUnet has been employed for Sargassum 
+extraction in high-resolution optical data ( Wang and Hu, 2021b ). 
+Reflectance spectra of Sea snot/ mucilage were examined by Hu et al. 
+(2022) while spectral indices ( Kavzoglu and Goral, 2022 ), OBIA ( Kav -
+zo ˘glu et al., 2021 ) and SVM ( Tuzcu Kokal et al., 2022 ) were adopted for 
+Sea snot detection. 
+1 
+The term ’ marine classes ’ refers to all classes considered in our analysis. 
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+
+===== PAGE 3 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+41
+For Ship identification, DL techniques on S2 data have already been 
+assessed (
+ˇ
+Stepec et al., 2019; Xie et al., 2020 ). CNNs have been exam -
+ined to distinguish ships from icebergs ( Heiselberg, 2020 ), and self- 
+supervised learning was exploited to generate binary ship/no-ship seg -
+mentation outputs ( Ciocarlan and Stoian, 2021 ). Other competing 
+classes, such as Waves and Wakes, have been studied based on SVMs 
+( Heiselberg and Heiselberg, 2017; Song et al., 2014 ), while Liu et al. 
+(2021) proposed a Radon transform method for Wake identification, 
+effectively eliminating false alarms such as Waves and Oil Spill . 
+3. Dataset and methods 
+3.1. The MADOS benchmark dataset 
+3.1.1. Data processing & curation 
+Satellite sensors with high spatial, spectral and temporal resolution 
+are required to develop operational solutions for monitoring the marine 
+environment. Currently, the openly available Copernicus S2 multispec -
+tral data cover global coastal waters at high spatial resolutions (10 m, 
+20 m and 60 m). Additionally, S2 satellite has a frequent revisit time of 
+approximately five days (depending on the latitude), delivering a large 
+amount of free geospatial data. It also acquires data in 13 spectral bands, 
+which range from the visible to the Short-Wave Infrared (SWIR). 
+Therefore, in our study, we utilized the S2 multispectral satellite images. 
+We collected S2 Level 1C products (Top-of-Atmosphere reflectance) 
+through EarthExplorer (USGS). Similar to previous studies on floating 
+materials detection ( Qi et al., 2020; Sun et al., 2018; Zhao et al., 2014 ), 
+we applied ACOLITE atmospheric processor ( Vanhellemont and Rud -
+dick, 2018 ) to retrieve the Rayleigh reflectance. 
+Data annotation, curation and refining were performed following 
+Kikaki et al. (2020) & (2022) methods and protocols. The annotation 
+was performed by three image-interpretation experts with access to all 
+collected data. To enhance the accuracy and reliability of our dataset, 
+with a particular focus on Marine Debris and Oil Spill classes, we 
+employed an inter-annotators agreement protocol. Specifically, for 
+Marine Debris and Oil Spill , the intersection per two annotators was 
+extracted (i.e., an agreement between at least two annotators regarding 
+the class label). This approach enriched fine-grained annotations of 
+Marine Debris , offering greater detail and precision. As Oil Spill was also a 
+primary category in our focus on marine pollution, we applied this 
+protocol to this class in a similar manner. We also used the same protocol 
+to similarly appearing classes to Marine Debris , i.e., Natural Organic 
+Material and Sparse Floating Algae . For the other classes, the union of the 
+annotated data was calculated. 
+To improve the quality of our annotated data, the structure of the 
+high-dimensional observations was visualized. Thus, we embedded our 
+data in a 2D space, identifying the spectral patterns and outliers. Spe -
+cifically, we utilized the t-distributed Stochastic Neighborhood 
+Embedding (t-SNE) algorithm ( van der Maaten and Hinton, 2008 ) using 
+Spectral Angle Mapping (SAM) as a distance metric. 
+Based on the annotated data, we cropped the S2 scenes into non- 
+overlapped image patches. In the produced dataset, the initial spatial 
+resolution of each spectral band was retained without any upsampling 
+technique. Each provided image corresponds to 2.4x2.4 km
+2
+; thus, the 
+10 m spectral bands form image patches of 240x240 pixels, the 20 m 
+patches of 120x120 pixels and the 60 m patches of 40x40 pixels. 
+3.1.2. MADOS thematic classes and annotations 
+We have constructed MADOS, which contains annotated S2 data 
+based on 174 scenes and 47 tiles captured between 2015 and 2022. 
+Numerous annotations were created consisting of 1,481,155 pixels 
+based on studies, reports and data on marine pollution as well as 
+intensive photo-interpretation ( Table S1 ). Finally, our dataset is 
+distributed over 22 countries ( Fig. 1 ) and contains 15 different thematic 
+classes ( Table 3 ). 
+We focus on two major marine pollutants, i.e., Oil Spill and Marine 
+Table 1 
+Publications for Oil Spill (Oil) mapping using Sentinel-2 data during the period 2018 – 2022.  
+General Info Pre-processing Classification/ Detection 
+Publication Main purpose Study Area Time span # of S2 scenes Atm. Corr. Reflectance Method # of classes 
+Kolokoussis & Karathanassi, 2018 Oil detection Zakynthos Isl. & Saronikos Gulf (Greece) 2017 4 No TOA OBIA, SI 1 
+Sun et al., 2018 Oil detection Gulf of Mexico 2004 – 2016 24 Yes Rayleigh Statistical analysis 1 
+Althawadi & Hashim, 2019 Oil detection & Calibration Arabian Gulf 2016 – 2017 7 Yes Surface Refl. Region-based segmentation, Regression 1 
+Rajendran et al., 2021a Oil detection Ambarnaya river, Russia 2020 14 No TOA SI, Dynamical permafrost model, DSM 5 
+Rajendran et al., 2021c Oil detection Mauritius 2020 6 Yes Surface Refl. PSA, Band ratios, DSM 3 
+Rajendran et al., 2021b Oil detection Mauritius 2020 8 No TOA Band ratios, DSM 1 
+Argamosa et al., 2022 Oil detection Manila Bay, Philippines 2020 2 No TOA PCA, Gradient boosting algor. 2 
+Abou Samra and Ali, 2022 Oil detection Nile Delta 2019 – 2021 N/A Yes Rayleigh Band ratios, DSM 1 
+Tysi ą c et al., 2022 Oil detection Ambarnaya river, Russia 2020 6 No TOA SVM, SI 6 
+Abbreviations: OBIA = Object-Based Image Analysis, SI = Spectral Indices, DSM = Decorrelation Stretch Method, PSA = Parallelepiped Supervised Algorithm, PCA = Principal Component Analysis, N/A = Not Mentioned, 
+SVM = Support Vector Machine. 
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+
+===== PAGE 4 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+42
+Table 2 
+Publications for Marine Debris (MD) mapping using Sentinel-2 data during the period 2018 – 2022.  
+General info Pre-processing Classification/ Detection 
+Publication Main purpose Study Area Time span # of S2 
+scenes 
+Atm. 
+Corr. 
+Reflectance Method # of 
+classes 
+Kikaki et al., 2020 MD sources & pathways 
+detection 
+Honduras Gulf 2014 – 2019 37 Yes Surface Refl. In situ data, Image interpretation, Spectral 
+signatures 
+3 
+Biermann et al., 2020 MD detection Global 2018 – 2019 12 Yes Surface Refl. Naïve Bayes 5 
+Mifdal et al., 2021 Float. Objects detection Global 2018 – 2020 15 Yes Surface Refl., 
+TOA 
+SVM, RF, Naïve Bayes, U-Net 2 
+Gonzaga et al., 2021 MD detection Manila Bay, Philippines 2019 – 2020 6 Yes Surface Refl. Naïve Bayes, MTMF, FDI, NDVI, PI 5 
+Arias et al., 2021 Windrows detection Greece, Honduras N/A 40 Yes Surface Refl., 
+TOA 
+Wasp Spectral Index 1 
+Ciappa, 2021 MD detection Hawaii, N. Adriatic, S. 
+Domingo 
+2020 6 Yes Surface Refl. Red edge bands, NDVI, PI, FDI 5 
+Kikaki et al., 2022 MD detection Global 2015 – 2021 63 Yes Rayleigh RF, U-Net 11 
+Mikeli et al., 2022 MD detection Global 2015 – 2021 63 Yes Rayleigh RF, U-Net 11 
+Olyaei et al., 2022 MD detection Global 2015 – 2021 63 Yes Rayleigh Deep Knockoff, SVM, RF 3 
+Sannigrahi et al., 2022 MD detection Mediterranean Sea 2018 – 2019 & 
+2021 
+27 Yes Surface Refl. SVM, RF 3 
+Sol ´e G ´omez et al., 2022 River debris detection Drina, Los Angeles & Yangtzee 2018 – 2020 30 Yes Surface Refl. U-Net, U-Net3DE, DeepLab V3 + 3 
+Ciappa, 2022 MD detection N.Adriatic, Australia 2020 6 Yes Surface Refl. Spectral bands 4 
+Ru ß wurm et al., 2023 MD detection Global 2015 – 2021 89 Yes Surface Refl. U-Net, Label Refinement Module 1 
+Booth et al., 2023 MD detection & density 
+mapping 
+Global 2015 – 2021 63 Yes Surface Refl. U-Net, MAP-Mapper 1 
+Duarte & Azevedo, 
+2023 
+MD detection Global 2016 – 2021 25 Yes Surface Refl. GANs, SI, XGBoost 7 
+Abbreviations: SVM = Support Vector Machine, RF = Random Forest, MTMF = Mixture Tuned Matched Filtering, FDI = Floating Debris Index, NDVI = Normalized difference vegetation index, PI = Plastic Index, GANs =
+Generative Adversarial Networks, SI = Spectral Indices, XGBoost = Extreme Gradient Boosting, N/A = Not Mentioned. 
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+
+===== PAGE 5 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+43
+Debris . First, oil slicks from different sources (i.e., ship accidents, 
+offshore platforms, discharges due to natural disasters and seafloor 
+natural seepages) were recorded. Our aim was to develop a model 
+capable of detecting one Oil Spill thematic class and not different oil 
+types. However, oil forms of different thicknesses were considered and 
+annotated in MADOS, including all categories established by NOAA 
+(2016) : a) Dark, b) Mousse (emulsified), c) Transitional dark, d) 
+Metallic, e) Rainbow and f) Sheen ( Fig. 2 ). 
+Regarding Marine Debris , we used the open-access MARIDA dataset 
+( Kikaki et al., 2022 ), which distinguishes litter from various sea features. 
+We also increased the number of Marine Debris pixels by adding new 
+observations based on recent reports and publications ( Table S1 ). 
+Following previous studies ( Biermann et al., 2020; Hu et al., 2022; 
+Kikaki et al., 2020; Martínez-Vicente et al., 2019 ), we additionally 
+considered floating materials that have been suggested to be spectrally 
+similar to plastics, or are occasionally aggregated with floating macro -
+plastics on the ocean surface. Thus, Foam , Sargassum , Natural Organic 
+Material (including driftwood), Ships and Sea Snot trajectories ( Hu et al., 
+2022 ) were annotated ( Fig. 2 ). Suspected Jellyfish investigated by Qi 
+et al., (2020) were also taken into account to evaluate the discrimination 
+from Marine Debris and Sea Snot, as previous studies have indicated the 
+potential of spectral similarities ( Hu et al., 2022; Van der Zande et al., 
+2014 ). Classes sometimes observed concurrently with oil slicks, such as 
+Oil Platform and Sparse Floating Algae, were also considered and added. 
+Moreover, sea state look-alikes were annotated and aggregated with the 
+Marine Water class. Other water-related classes recorded on our study 
+regions (i.e., Sediment-Laden Water, Turbid Water, Shallow Water, Waves 
+and Ship Wakes) have also been annotated. Also, sparse Sargassum was 
+grouped with other sparse floating algae species, forming a Sparse 
+Floating Algae (SpFa) super-class. By adding these competing cases, we 
+aim to enable the developed algorithms to discriminate marine pollut -
+ants from the other floating materials and sea surface features. We note 
+that clouds and cloud shadows were not included in our analysis. We 
+consider this a different, quite challenging task that the remote sensing 
+scientific community is working on. Therefore, one could integrate any 
+of the standard software tools (such as MAJA, Fmask, Sen2Cor) into the 
+processing pipeline to address cloud and shadow detection. 
+MADOS consists of realistic observations recorded under diverse 
+weather conditions aiming to support real-world applications ( Fig. 2 ). 
+However, due to this diversity as well as due to S2 specifications our data 
+Table 3 
+MADOS Thematic Classes. Per-class description, acronym, number of image patches and corresponding annotated pixels.  
+# Class Name Acronym Description # of patches (240x240) # of pixels 
+1 Marine Debris MD Floating plastics, mixed anthropogenic debris 472 4696 
+2 Oil spill Oil Oil types including crude oil, emulsified, oil on water, metallic, sheen & rainbow 361 234,568 
+3 Dense Sargassum DenS Dense floating Sargassum macroalgae 77 4308 
+4 Sparse Floating Algae SpFA Sparse Sargassum & other macroalgae 157 4972 
+5 Natural Organic Material NatM Vegetation & Wood 92 1454 
+6 Ship Ship Sailing & Anchored Vessels 298 13,222 
+7 Marine Water MWater Clear Water & sea state Look-alikes 1360 496,702 
+8 Sediment-Laden Water SLWater High-Sediment river discharges with brown colour 57 376,061 
+9 Foam Foam Foam recorded at river fronts or coastal wave breaking area 58 1225 
+10 Turbid Water TWater Turbid waters close to coastal areas 232 170,306 
+11 Shallow Water SWater Coastal waters, including coral reefs and submerged vegetation 140 122,753 
+12 Waves & Wakes Waves Waves & Ship Wakes 224 20,374 
+13 Oil Platform OilPlat Offshore Oil Platform 348 15,701 
+14 Jellyfish Jellyfish Jellyfish 12 2541 
+15 Sea snot Sea snot Sea snot/ mucilage 63 12,272  
+Total   2803 1,481,155  
+Fig. 1. The globally distributed Sentinel-2 tiles from which MADOS data were sampled.  
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+
+===== PAGE 6 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+44
+Fig. 2. An overview of MADOS provided patches. Marine pollutants and Sea surface features were annotated under various weather and sea state conditions.  
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+===== PAGE 7 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+45
+do not represent spectral endmembers. 
+From this point in the paper, we will use the acronyms presented in 
+Table 3 . The Table defines these acronyms to facilitate clarity 
+throughout the text. Overall, MADOS consists of 1,481,155 annotated 
+pixels composed of 4696 MD pixels and 234,568 Oil pixels, corre -
+sponding to 469600 m
+2 
+and 23456800 m
+2 
+areas, respectively. Addi -
+tionally, 2803 image patches are offered, each one covering 2.4x2.4 
+km
+2
+. In Table 3 , we observe that in MADOS, the distribution of samples 
+per class at the pixel- or patch-level is not uniform. As expected, water- 
+related classes can be found and digitized to a significantly larger extent 
+than the usually small floating objects like floating plastics. Specifically, 
+the class MWater has been annotated in 1360 patches, while the second- 
+highest number of 472 patches was MD and the third-highest number of 
+361 patches was Oil . The considerable amount of annotated images in -
+dicates the high diversity of annotated Oil and MD pollutants. On the 
+other hand, Jellyfish and NatM are the least annotated classes. For these 
+classes, a limited number of reports containing sufficiently large quan -
+tities capable of being identified in S2 satellite images were collected. 
+3.2. Machine learning classification frameworks 
+In subsection 3.2.1, we present and discuss well-established and 
+state-of-the-art ML models employed as baselines in our experiments. 
+Subsection 3.2.2 then describes in detail our MariNeXT framework. 
+Finally, we describe our experimental design, including the evaluation 
+on MADOS and implementation details in subsection 3.2.3. 
+3.2.1. Baselines 
+Random Forest: Random Forest ( Breiman, 2001 ) is a traditional 
+shallow learning algorithm that has been frequently used for several 
+classification tasks by the remote sensing community. A RF classification 
+algorithm includes many decision trees and uses averaging to improve 
+the predictive performance. We examined two different baseline models 
+using RF: i) one based on just the spectral signatures, and ii) one with 
+spectral signatures, spectral indices and other spatial features. In 
+particular, the employed spectral indices were: NDVI, NDWI, FAI, FDI, 
+Shadow Index (SI), Normalized Difference Moisture Index (NDMI), Bare 
+Soil Index (BSI) and NRD. Following Mikeli et al. (2022) , for the spatial 
+features, we utilized the grayscale images derived by RGB composites 
+and computed: the GrayLevel Co-occurrence Matrix (GLCM), the 
+Gaussian at multiple scales, the Sobel of the Gaussians, and the 
+Eigenvalues of the Hessian Matrix of the Gaussians. 
+U-Net: We employed U-Net as a DL baseline, which is a popular 
+encoder-decoder convolutional architecture developed for the task of 
+semantic segmentation ( Ronneberger et al., 2015 ). In particular, the 
+encoder path consists of successive blocks representing the input image. 
+Each encoder block contains 3 x 3 convolutions for feature extraction 
+and max-pooling layers for down-sampling. At each down-sampling 
+step, the number of feature channels is doubled while the spatial di -
+mensions are reduced by half. The decoder takes the representation and 
+generates the semantic segmentation output using successive up- 
+convolution layers. 
+SegNeXt: We also employed a state-of-the-art encoder-decoder ar -
+chitecture named SegNeXt ( Guo et al., 2022 ). The encoder consists of a 
+sequential four-stage pyramid structure named Multi-Scale Convolu -
+tional Attention Network (MSCAN). Each stage contains a down- 
+sampling step followed by multiple blocks. The multiple blocks are 
+inspired by a ViT-like (Vision Transformer) structure ( Dosovitskiy et al., 
+2020 ), with the main difference being that the Multi-Scale Convolu -
+tional Attention (MSCA) replaces the self-attention module. The MSCA 
+module consists of a depth-wise 5 x 5 convolution layer followed by a 
+multi-branch depth-wise strip convolution layer that efficiently ap -
+proximates the 7 x 7, 11 x 11 and 21 x 21 large-kernel convolutions, 
+extracting information at multiple scales. The down-sampling steps 
+consist of 3 x 3 convolution and batch normalization layers. The spatial 
+dimensions of the first stage features are H/4 x W/4 and are further 
+reduced by half for each following stage, where W and H are the width 
+and height of the input image, respectively. Moreover, the decoder 
+concatenates the output feature maps extracted from the last three 
+stages, discarding the features from the first stage. Guo et al. (2022) 
+highlight that stage-one features contain too much low-level informa -
+tion that does not perform well in their evaluation setup with RGB im -
+ages of everyday objects, humans and actions. In order to capture global 
+context, the Hamburger ( Geng et al., 2022 ) module is adopted, which 
+factorizes the input features using low-rank matrix decomposition, dis -
+carding the irregular noise and redundant features while keeping the 
+clean signal subspace. 
+3.2.2. MariNeXt 
+A semantic segmentation framework was designed based on recent 
+convolutional attention mechanisms ( Guo et al., 2022 ) that are able to 
+encode contextual information effectively depicted in multispectral 
+Fig. 3. Simplified overview of MariNeXt, which consists of two main parts: a) During the training process, the input batch of images is augmented using the VSCP 
+module combing the samples, which are then passed as new input. Then MariNeXt exploits the S1 (1
+st
+-Stage Higher Resolution Features) to produce fine-grained 
+predictions. b) During testing, the Test-Time Augmentation (TTA) strategy is employed to produce several augmented views of the input image and aggregate 
+the predictions by major voting, producing refined predictions. 
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+
+===== PAGE 8 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+46
+satellite imagery in the marine environment. In particular, we have 
+adopted the aforementioned SegNeXt architecture and proposed im -
+provements in three directions, i.e., modeling, training and testing 
+( Fig. 3 ). These improvements were tailored for marine mapping appli -
+cations and significantly boosted the performance of marine pollution 
+detection. The three directions are described in the following 
+paragraphs. 
+1
+st
+-Stage Higher Resolution Features: Regarding the modeling 
+part, we reexamine the design of SegNeXt that discards the first-stage 
+features. This implementation choice leads SegNeXt to output H/8 x 
+W/8 prediction maps, which are nearest-neighbor upsampled to match 
+the input H x W image. As shown by Guo et al. (2022) , the high- 
+resolution features might contain too much low-level information for 
+the RGB images of everyday objects. However, in our case, various 
+floating materials such as Marine Debris might be presented only on a few 
+pixels turning high-resolution features essential for effective modeling. 
+Additionally, this approach enables the model to output H/4 x W/4 
+prediction maps. Thus, we show that exploiting additional high- 
+resolution features from the encoder improves the performance in the 
+considered marine environment mapping task. 
+Very Simple Copy-Paste (VSCP): As discussed in subsections 2.2 
+and 3.1.2, the collection of ground truth data is challenging, involves 
+high-cost laborious work, while collecting high-quality and confident 
+annotations is not straightforward. In such situations where training 
+data are scarce, incorporating data augmentation techniques can guide 
+the model to learn better feature representations. Towards this direc -
+tion, we have integrated a robust data augmentation strategy that fits 
+perfectly the particularities of marine classes. 
+More specifically, Copy-Paste augmentation approaches are estab -
+lished techniques for object detection and instance segmentation tasks 
+( Dvornik et al., 2018; Dwibedi et al., 2017; Fang et al., 2019 ). These 
+methods are related to MixUp ( Zhang et al., 2022 ) and CutMix ( Yun 
+et al., 2019 ) augmentation strategies. However, compared to MixUp and 
+CutMix, Copy-Paste methods do not transfer an object ’ s whole bounding 
+box but only the exact annotated pixels. Furthermore, as everyday ob -
+jects depicted in RGB images are placed in specific and oriented posi -
+tions, most previous works on Copy-Paste utilized the surrounding 
+context to place the copied object in the appropriate environment. 
+Recently, Simple Copy-Paste ( Ghiasi et al., 2021 ) proposed placing the 
+objects in random positions and demonstrated promising results in 
+instance segmentation. 
+In our case, MADOS consists of S2 satellite images captured at 786 
+km mean orbital altitude in the aquatic environment. This means that 
+the surrounding context and the relative scale between the objects are 
+always the same. Note also that every floating material can co-occur 
+with any other over the same background environment (i.e., Water ). 
+For these reasons, in our case, there are not signifi-cantly different 
+surrounding contexts or scale issues. Therefore, inspired by Ghiasi et al. 
+(2021) , we propose a straightforward and Very Simple Copy-Paste 
+(VSCP) training augmentation approach that fits excellently in our se -
+mantic segmentation task using sparse annotations ( Fig. 4 ). In particular, 
+given a batch X ∊ R
+( N
+batch
+, C , W , H )
+and Y ∊ Z
+( N
+batch
+, W , H )
+, where X are the input 
+images, Y the groundtruth masks, N
+batch 
+is the batch size, C is the spectral 
+dimension, and W and H are the width and height, respectively, our 
+approach augments the current training batch size by N
+VSCP
+=
+⌊
+N
+batch
+2
+⌋
+, 
+where ⌊ • ⌋ outputs the greatest integer less than or equal to the input. 
+Specifically, given the i and the i + N
+VSCP 
+samples in the current training 
+batch, we construct a new augmented image by adding the annotated 
+regions and replacing the pixels to the image i from the image i + N
+VSCP
+. 
+The new synthesized image contains the annotations from both i and 
+i + N
+VSCP 
+using as background the i image ( Fig. 3 ). More formally, each 
+pixel element x
+VSCP
+n , c , w , h
+and y
+VSCP
+n , w , h 
+of the N
+VSCP 
+augmented images 
+X
+VSCP
+∊ R
+( N
+VSCP
+, C , W , H )
+with the corresponding ground truth masks 
+Y
+VSCP
+∊ Z
+( N
+VSCP
+, W , H )
+, are: 
+Fig. 4. MariNeXt integrates the Very Simple Copy-Paste (VSCP) augmentation technique for constructing new images, enriching MADOS. Given pairs of input images 
+and annotations, VSCP combines the input and annotated pixels of two images to create a new synthetic input pair increasing the class co-occurrence of input data. 
+The two input images show: a) Sea state look-alikes and Marine Water and b) Ships, Wakes and Marine Water. We also demonstrate the c) synthesized image. RGB 
+images (top) and our corresponding annotations (down) are presented. 
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+
+===== PAGE 9 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+47
+x
+VSCP
+n , c , w , h
+=
+{
+x
+n + N
+VSCP
+, c , w , h
+if ​ y
+n + N
+VSCP
+, w , h
+∕=   1
+x
+n , c , w , h
+otherwise
+, (1)  
+y
+VSCP
+n , w , h
+=
+{
+y
+n + N
+VSCP
+, w , h
+if ​ y
+n + N
+VSCP
+, w , h
+∕=   1
+y
+n , w , h
+otherwise
+, (2)  
+for n = 1 , ⋯ , N
+VSCP
+, c = 1 , ⋯ , C , w = 1 , ⋯ , W and h = 1 , ⋯ , H . Note that 
+the non-annotated pixels have y
+n , w , h
+=   1. 
+Test-Time Augmentation (TTA): Similarly to Gonzalo-Martín et al. 
+(2021); Moshkov et al. (2020); Wang et al., (2019b,2019a) , during the 
+training procedure, we have also considered augmentations during the 
+inference (test-time) execution in order to refine MariNeXt predictions 
+by averaging the outputs across the different augmented views. To do so, 
+we have explored a simple and effective Test-Time Augmentation (TTA) 
+strategy. 
+In particular, for each input image X ∈ R
+C × W × H
+, a trained model f :
+R
+C × W × H
+→ N
+W × H 
+produces an output Y ∊ N
+W × H 
+forming the assigned in -
+tegers that correspond to the predicted class for each pixel. Using N
+T 
+different transformations { T
+i
+}
+N
+T
+i = 1 
+we obtain a set of predictions 
+{
+Y
+T
+i
+}
+N
+T
+i = 1
+: 
+Y
+T i
+= T
+i
+  1
+f ( T
+i
+( X ) ) , f or i = 1 , ⋯ , N
+T
+(3) 
+Then for each pixel we aggregate the results using the majority 
+voting which corresponds to the mode of the sampling distribution: 
+y
+TTA
+w , h
+= MODE
+(
+{
+Y
+T i
+w , h
+}
+N T
+i = 1
+)
+, f or w = 1 , ⋯ , W and h = 1 , ⋯ , H (4)  
+The final predicted image is the Y
+TTA
+∊ N
+W × H 
+with elements y
+TTA
+w , h
+. In order 
+to keep the initial spectral bands and object scales as in the raw S2 
+images, we do not apply any color or scale transformation. Specifically, 
+we combine rotations of 0
+◦
+, 90
+◦
+, 180
+◦
+, 270
+◦
+with the horizontal flipping, 
+resulting in N
+T
+= 8 different transformations applied in test-time 
+execution. 
+3.2.3. Experimental design 
+Evaluation on MADOS. In order to train and assess MariNeXt and 
+the other baseline models, we split MADOS into three disjoint train, 
+validation and test sets. The train set is employed to train the models 
+explicitly, the validation set to monitor the learning process and the test 
+set to perform our evaluation. Each of these sets retains the class dis -
+tribution of the whole MADOS dataset. Additionally, the cropped 
+patches from each scene/ unique date are kept on the same set. The splits 
+contain 1433 training (761887 pixels), 642 validation (358121 pixels) 
+and 728 test (361147 pixels) patches. The number of patches and pixels 
+corresponds to approximately 50 %/25 %/25 % of the initial MADOS 
+dataset. We note that each data split was created as a representative 
+subset of the entire MADOS dataset in terms of pixels and patches sta -
+tistics ( Table S2 ). 
+To assess the models ’ performance quantitatively, we relied on three 
+evaluation metrics: i) Jaccard Index or Intersection-over-Union (IoU), ii) 
+F
+1 
+score, iii) Overall Accuracy (OA), and iv) per class Recall. The eval -
+uation metrics were calculated as follows: 
+IoU
+c
+=
+TP
+c
+TP
+c
++ FP
+c
++ FN
+c
+, (5)  
+where TP
+c 
+are true positives, FP
+c 
+are false positives and FN
+c 
+are false 
+negatives of each c class. 
+Since we deal with a multi-class task, the evaluation metric for the 
+overall assessment is the mIoU which is the average IoU over all classes 
+c : 
+mIoU =
+1
+n
+∑
+n
+c
+IoU
+c
+, (6)  
+The second metric is the average for each class F
+1 
+score (Macro- F
+1
+/ mF
+1
+), 
+which is the harmonic mean between Precision P = TP / ( TP + FP ) and 
+Recall R = TP / ( TP + FN ) : 
+mF
+1
+=
+1
+n
+∑
+n
+c
+F
+1 c
+=
+1
+n
+∑
+n
+c
+2 P
+c
+R
+c
+P
+c
++ R
+c
+. (7)  
+We also considered the Overall Accuracy: 
+OA =
+∑
+n
+c
+TP
+c
+∑
+n
+c
+TP
+c
++ FP
+c
+. (8)  
+Implementation details. In all experiments, we upsampled the 20 m 
+and 60 m bands to 10 m using the nearest-neighbor resampling 
+approach. For both RF models, we followed the training setup as pro -
+posed by Kikaki et al. (2022); Mikeli et al. (2022) . More specifically, we 
+employed 125 trees, each with a maximum depth of 20 nodes and used a 
+class weighting scheme to handle the class imbalance while the anno -
+tators ’ confidence levels were also exploited. Regarding the spatial 
+features, the grayscale images derived by RGB composites were utilized 
+in order to extract the GLCM features using a 13 x 13 sliding window. We 
+computed the Gaussian, the Sobel of the Gaussians, and the Eigenvalues 
+of the Hessian Matrix of the Gaussians at the different scale levels using 
+the standard deviation of σ = 1 , 2 , 4 , 8 , 16. 
+For the DL models, we based our implementation on MARIDA 
+( Kikaki et al., 2022 ), SegNext ( Guo et al., 2022 ), timm ( Wightman, 
+2019 ) and mmsegmentation ( MMSegmentation Contributors, 2020 ) li -
+braries. For all models, we adapted the first input layer to handle the 11 
+S2 bands and the final layer to output the MADOS 15 classes. Regarding 
+SegNeXt, we used the Tiny (SegNeXt-T) version. The same was adopted 
+in MariNeXt. All DL models were trained from scratch with Adam al -
+gorithm for 80 epochs with an initial learning rate of 2x10
+-4 
+minimizing 
+the Cross-Entropy loss. After epochs 45 and 65 the learning rate was set 
+to 2x10
+-5 
+and 2x10
+-6
+, respectively. As detailed in Table S3 , we set the 
+batch size for U-Net to 15 and for SegNeXt and MariNeXt to 5. For data 
+augmentations, we used 0 ˚ , 90 ˚ , 180 ˚ or 270 ˚ random rotations as well as 
+horizontal and vertical flips. Following MARIDA, we used the same 
+weighting scheme to alleviate the effects of the imbalanced class dis -
+tribution. During training, we maintained the exponential moving average 
+(EMA) of the trained parameters θ by according to θ
+′
+← α θ
+′
++ ( 1   α ) θ , 
+setting α = 0 . 999. We found this process extremely beneficial to pro -
+duce smooth loss curves as well as robust and stable models. 
+4. Experimental results and validation 
+In this section, we compare our method with the other employed ML 
+models and evaluate its performance both quantitively and qualita -
+tively. In addition, an ablation study is performed to assess the main 
+components of the proposed MariNeXt framework. 
+4.1. Comparing MariNeXt with ML baselines 
+Firstly, the performance of all applied models is quantitatively 
+evaluated. Overall, we observe that MariNeXt achieved the best classi -
+fication performance, as indicated by the highest average scores for all 
+Table 4 
+Evaluation of MariNeXt against ML baselines on MADOS test set using F
+1
+, mean 
+Intersection of Union (mIoU) and Overall Accuracy (OA) metrics, averaged over 
+five trials. The highest scores are highlighted with bold fonts.  
+Method F
+1 
+(%) mIoU (%) OA (%) 
+RF  56.6  43.9  67.1 
+RF
+++
+( Mikeli et al., 2022 )  64.4  52.4  83.8 
+U-Net ( Ronneberger et al., 2015 )  63.8  51.0  82.9 
+SegNext ( Guo et al., 2022 )  60.6  49.2  86.6 
+MariNeXt  76.0  64.3  89.1  
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+
+===== PAGE 10 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+48
+evaluation metrics, i.e., 76.0 % for F
+1
+, 64.3 % for mIoU and 89.1 % for 
+OA ( Table 4 ). MariNeXt outperformed all baselines by at least 11.6 % in 
+F
+1 
+and 11.9 % in mIoU metrics. 
+The second highest scores were obtained by RF
+++
+(i.e., 64.4 % for F
+1 
+and 52.4 % for mIoU), followed by U-Net, which led to 63.8 % for F
+1 
+and 
+51.0 % for mIoU. Regarding the rest two classifiers, the default RF 
+reached the lowest scores for all metrics while SegNeXt achieved an 
+improvement of + 4.1 % for F
+1
+, + 5.3 % for mIoU and + 19.5 % for OA. 
+We note that the default SegNeXt achieved the second-highest OA score 
+(i.e., 86.6 %) ( Table 4 ). 
+4.2. Quantitative and qualitative evaluation per thematic class 
+To further assess the performance of the MariNeXt and study the 
+agreement between the annotated data and the predictions, we present 
+and discuss the corresponding confusion matrix ( Table 5 ). The scores are 
+demonstrated for all metrics per class on the test set. Our analysis and 
+discussion focus on the achieved F
+1 
+scores, but similar conclusions can 
+also be derived from the other metrics. Specifically, the highest scores (i. 
+e., > 80 %) for F
+1 
+were achieved for classes with typical optical char -
+acteristics and spectra, such as SLWater , DenS , SpFA , water-related 
+classes (i.e., MWater , TWater ), classes with distinct textural patterns 
+such as OilPlat and Foam , as well as floating organisms like Jellyfish and 
+Sea snot . 
+On the other hand, Waves , MD and NatM showed the least F
+1 
+scores 
+(i.e., < 58 %). For Oil , Ship and SWater , our method led to F
+1 
+values > 62 
+%. 
+More specifically, one can observe that MD , a quite challenging case, 
+presented relatively low rates for F
+1 
+(i.e., 51.3 %) and IoU (i.e., 34.6 %). 
+Nevertheless, 70.4 % of its testing pixels were correctly classified, 
+indicating that there is a high possibility that our method detects MD 
+accurately. Also, 11.1 % were classified as Ship and 12.7 % as MWater . 
+This can be attributed to the fact that plastics are spectrally similar to 
+ships, as well as they can be probably spectrally close to MWater under 
+certain circumstances (e.g., low density, submersion, polymer type, 
+environmental conditions). 
+The Oil class, consisting of several oil types, presented 78.3 % F
+1 
+and 
+64.4 % IoU. In addition, 70.6 % of its testing data were correctly pre -
+dicted as Oil . However, a proportion of 28.3 % for Oil testing labeled 
+pixels were classified as MWater , indicating similar spectral behavior. 
+Regarding artificial materials and man-made objects, OilPlat, char -
+acterized by distinct spatial structures, achieved a high F
+1 
+rate (i.e., 84.3 
+%) and a very high Recall value (i.e., 94.6 %). On the contrary, Ship class 
+composed of varying sizes and cruising speeds reached a 62.8 % F
+1 
+score. Almost half of the testing annotated data were correctly classified 
+as Ship , while 39.3 % were wrongly predicted as OilPlat . Apparently, 
+these two classes share common spectral characteristics due to the 
+similar materials they consist of; thus, their discrimination is considered 
+challenging. 
+Water-related classes, such as SLWater , MWater and TWater held high 
+F
+1 
+scores of over 90 %. Foam also achieved high F
+1 
+score of over 80 % 
+due to its distinct spatial pattern that presents in coastal areas (wave 
+breaking). The least accurate water-classes were SWater and Waves , with 
+63.7 % and 37.7 % F
+1 
+scores, respectively. Recall values were 61.2 % for 
+SWater and 28.4 % for Waves . This was mainly affected by the confu -
+sions between SWater with MWater or TWater ; and Waves with MWater 
+or Oil . 
+Floating macroalgae species presented high F
+1 
+rates over 80 %. 
+However, as Table 5 indicates, there is some misclassification cases 
+between DenS and SpFA . Specifically, 28.2 % of DenS testing annotated 
+data were predicted as SpFA . In fact, this was expected since both classes 
+belong to the same super-class of floating macroalgae which contains 
+mainly Sargassum . 
+Despite the number of testing pixels being the lowest compared to 
+the other categories, Jellyfish achieved a F
+1 
+score of almost 90 %. As 
+Table 5 shows, 13.1 % of the testing data were classified as Waves, a class 
+Table 5 
+The resulting Confusion Matrix after applying MariNeXt on MADOS test set. The metrics of Recall, IoU, Precision and F
+1 
+are presented. Columns represent the predicted labels and rows represent the reference labels (%). 
+All acronyms are stated in Table 3 .  
+Ground Truth \Predicted MD DenS SpFA NatM Ship Oil MWater SLWater Foam TWater SWater Waves OilPlat Jelly 
+fish 
+Sea snot # of pixels (test set) Recall (%) 
+MD  70.4  0.0  2.1  0.0  11.1  0.1  12.7  0.0  0.0  0.0  0.0  3.1  0.4  0.0  0.0 973  70.4 
+DenS  0.5  70.0  28.2  1.3  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 1303  70.0 
+SpFA  1.2  1.3  90.4  0.2  0.0  0.0  6.9  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0 1786  90.4 
+NatM  22.7  0.0  5.3  46.1  17.6  0.1  5.7  0.0  0.0  0.2  0.0  2.3  0.0  0.0  0.0 278  46.1 
+Ship  3.1  0.0  0.0  0.0  52.7  2.1  0.3  0.2  0.0  0.4  0.0  1.6  39.3  0.3  0.0 3574  52.7 
+Oil  0.0  0.0  0.0  0.0  0.0  70.6  28.3  0.0  0.0  0.1  0.2  0.7  0.0  0.0  0.0 51,528  70.6 
+MWater  0.1  0.0  0.0  0.0  0.0  2.6  95.7  0.0  0.0  1.1  0.2  0.4  0.0  0.0  0.0 139,465  95.7 
+SLWater  0.0  0.0  0.0  0.0  0.0  0.0  0.0  99.3  0.0  0.7  0.0  0.0  0.0  0.0  0.0 93,254  99.3 
+Foam  0.5  0.0  0.0  0.0  4.9  0.1  0.3  0.0  80.6  1.1  0.0  7.4  0.0  0.0  5.2 387  80.6 
+TWater  0.0  0.0  0.0  0.0  0.1  0.0  1.5  0.1  0.0  89.8  7.6  1.0  0.0  0.0  0.0 42,168  89.8 
+SWater  0.0  0.0  0.0  0.0  0.0  0.0  26.1  0.0  0.0  12.4  61.2  0.3  0.0  0.0  0.0 12,732  61.2 
+Waves  2.9  0.0  0.0  0.0  2.2  17.3  41.7  0.0  0.1  1.2  6.1  28.4  0.1  0.0  0.0 6401  28.4 
+OilPlat  0.1  0.0  0.0  0.0  3.5  1.1  0.3  0.0  0.0  0.0  0.0  0.5  94.6  0.0  0.0 4790  94.6 
+Jellyfish  1.1  0.0  0.0  0.0  0.0  1.5  0.0  0.0  0.0  0.0  0.0  13.1  0.0  84.4  0.0 274  84.4 
+Sea snot  22.4  0.0  0.0  0.0  0.0  7.0  0.0  0.9  0.0  0.0  0.0  0.0  0.0  0.0  69.6 2234  69.6 
+IoU (%)  34.6  68.6  73.0  42.7  45.9  64.4  82.9  99.2  77.3  82.1  47.1  23.2  72.9  81.8  68.9 mIoU:  64.3 
+Precision (%)  40.6  97.7  79.2  83.8  77.9  88.8  86.2  99.9  95.0  90.8  67.9  57.1  76.1  96.2  98.7 OA:  89.1 
+F1-score (%)  51.3  81.2  84.3  57.2  62.8  78.3  90.7  99.6  87.1  90.1  63.7  37.7  84.3  89.9  81.4 F1-macro:  76.0  
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+
+===== PAGE 11 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+49
+of relatively high-intensity values in the optical spectrum. The Sea snot 
+class also reached a high F
+1 
+value of 81.4 %, while 22.4 % of its testing 
+labeled data were classified as MD . Moreover, the quite challenging 
+NatM class, which contains vegetation and wood materials, resulted in a 
+F
+1 
+score of 57.2 %. Again, we note that 22.4 % of its testing annotations 
+were classified as MD . 
+Apart from the quantitative assessment, a qualitative evaluation of 
+the applied models on the test set was also performed. To describe the 
+predictive power of MariNeXt and employed baselines, we demonstrate 
+representative classification results in Fig. 5 . By inspecting all resulting 
+maps, it is clear that MariNeXt achieved the highest predictive 
+performance. 
+In particular, it led to high-resolution results, being the most robust 
+to isolated pixels and weather conditions ( Fig. 5 ). Especially in the case 
+of Oil , our model could accurately discriminate Oil from MWater in fine 
+detail ( Fig. 5 b). Although MariNeXt resulted in coarser outputs than RF 
+models due to its convolutional nature, it also managed to predict small 
+objects such as Jellyfish ( Fig. 5 d) . 
+We generally observe an agreement between our MariNeXt predic -
+tion results and metric scores. For instance, a small part of Sargassum 
+pixels of low biomass densities was misclassified as MD ( Fig. 5 a), some 
+MWater pixels around debris were predicted as Oil ( Fig. 5 c), and sparse 
+Jellyfish pixels were classified as MD ( Fig. 5 d). These misclassification 
+cases were also observed in the quantitative results in Table 5 . 
+Regarding the other ML baselines, it is observed that SegNeXt led to 
+similar classification results with MariNeXt but with relatively coarser 
+outputs. This also supports our framework design choices by including 
+first-stage features and exploiting their high-resolution feature repre -
+sentations. U-Net also yielded satisfactory results for Sargassum and Oil 
+while it misclassified several MD pixels as Waves and almost all Jellyfish 
+as Ship . Concerning RF models, the default RF, which reached the lowest 
+scores for all metrics ( Table 4 ), failed to discriminate Oil from MWater 
+and Waves from MWater , presenting the highest sensitivity to S2 sensor 
+noise and isolated pixels ( Fig. 5 b,d). However, adding spectral (indices) 
+and texture/ spatial information substantially improved the classifica -
+tion performance results. In fact, RF
+++
+reached the second highest 
+metric scores ( Table 4 ), providing high-resolution outputs for Sargassum 
+and Oil classes ( Fig. 5 a,b). It also achieved to predict some pixels 
+correctly as Waves . On the other hand, in the case of small-width objects 
+(i.e., MD and Jellyfish ), it led to misclassification results as part of MD 
+pixels was identified as SpFA , Waves and Oil, and Jellyfish was classified 
+as OilPlat , MD and Ship ( Fig. 5 c,d). 
+By evaluating the baselines qualitatively and quantitatively, we 
+observe that although RF
+++
+led to the second-highest rates ( Table 4 ), its 
+extracted maps presented enough scattered, isolated predictions. This 
+points out that RF
+++
+is prone to artifacts (e.g., S2 mixed bands, low- 
+density pixels) and weather conditions. Besides, the qualitative inter -
+pretation showed that SegNeXt could capture the semantic context of 
+Fig. 5. Prediction maps extracted by the applied baselines and MariNeXt. The RGB images show: a) Dense & sparse Sargassum, Marine Water and haze/thin clouds, 
+b) Oil Spill and Marine Water, c) Marine Debris and Marine Water, and d) Jellyfish and rough sea state. The RGB images were stretched for illustration purposes. For 
+more classification results, the reader is referred to Supplementary Figure S1 . 
+Table 6 
+Ablation study on the proposed approach. SegNeXt is considered as a baseline 
+for the ablation.  
+1
+st
+-Stage Features VSCP Increased BS TTA F
+1 
+mIoU 
+⨯ ⨯ ⨯ ⨯  60.6  49.2 
+⨯ ⨯ ⨯ ✓  63.4  51.6 
+⨯ ✓ ⨯ ⨯  65.9  53.0 
+✓ ⨯ ⨯ ⨯  66.3  53.6 
+✓ ⨯ ✓ ⨯  66.1  53.6 
+✓ ⨯ ⨯ ✓  67.3  55.6 
+⨯ ✓ ⨯ ✓  69.0  56.2 
+✓ ✓ ⨯ ⨯  72.7  59.6 
+✓ ✓ ⨯ ✓  76.0 *  64.3 * 
+VSCP: Very Simple Copy-Paste, BS: Batch Size, TTA: Test-Time Augmentation, 
+*MariNeXt. 
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+
+===== PAGE 12 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+50
+depicted classes. Note that SegNext produces H/8 x W/8 prediction 
+maps, which are simply nearest-neighbor upsampled. Therefore, it 
+produces coarse-grained prediction maps leading to relatively low F
+1 
+and mIoU scores ( Table 4 ). 
+4.3. Ablation study for MariNeXt 
+In order to demonstrate the impact of the design choices regarding 
+the proposed MariNeXt framework, we performed a detailed ablation by 
+adding/ removing different components. We report the corresponding 
+F
+1 
+and mIoU values for each experiment in Table 6 . After a close look at 
+all experiments, we observe that TTA is an essential feature, as it 
+improved the model ’ s performance in all experiments, i.e., either adding 
+1
+st
+-Stage Features or not, either with VSCP or not. In particular, by 
+integrating this augmentation strategy, the model produced more robust 
+predictions based on eight different augmentations of the same image. 
+Without adding features of the 1
+st 
+stage, TTA resulted in an increase of 
+2.8 % for F
+1 
+and 2.4 % for mIoU, as with the additional features the 
+corresponding values were 1 % and 2 %, respectively. 
+Additionally, our VSCP augmentation strategy was critical for better 
+classification results ( Table 6 ). This was expected since increasing the 
+training samples improves the model ’ s accuracy and generalization. In 
+the case of default SegNeXt, an improvement of 5.3 % for F
+1 
+and 3.8 % 
+for mIoU was obtained, as for the extra high-resolution features, an 
+enhancement of 6.4 % for F
+1 
+and 6 % for mIoU was performed. Table 6 
+also shows the importance of utilizing higher-resolution features of the 
+1
+st 
+stage. The additional features led to an improvement of 5.7 % for F
+1 
+and 4.4 % for mIoU compared to the default model. 
+We further investigated whether the enhanced performance with the 
+additional mixed samples was due to the increased batch size. Thus, 
+increasing the batch size with unmixed samples was also examined, 
+leading to lower metric scores ( Table 6 ). 
+As evident in Table 6 , the best combination is 1
+st
+-Stage Features, with 
+VSCP and TTA, which shows the effectiveness of our method over the 
+baseline SegNeXt. Also, we highlight that each component is orthogonal 
+to the others, as each one benefits the performance independently. Last 
+but not least, we experimented with four different BSs (5, 10, 15, 20), 
+indicating that the batch size selection was crucial for the performance 
+of the applied models ( Table S3 ). 
+To further understand the effectiveness of MariNeXt ’ s components, 
+we systematically enabled/ disabled them from our framework 
+inspecting the class-wise F
+1 
+scores ( Table S4 ). By integrating high- 
+resolution 1
+st 
+stage features, F
+1 
+scores were significantly increased by 
+over 12 % for the MD , DenS , SpFA and Foam classes. High-resolution 
+features were beneficial for our task as we focused on pixel-based pre -
+dictions with objects presented at significantly different scales (e.g., Oil 
+vs. MD ) Furthermore, by enabling TTA and VSCP, we observe an in -
+crease of over 20 % for NatM , Jellyfish and Foam ( Table S4 ), which are 
+Fig. 6. T-SNE Analysis on MADOS dataset using Spectral Angle Mapping for Oil Spill, Marine Water and Waves & Wakes.  
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+
+===== PAGE 13 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+51
+the most under-representative classes in the MADOS dataset. By inte -
+grating TTA, MariNeXt delivers more robust predictions, improving the 
+classification performance. At the same time, with VSCP, MariNeXt 
+synthesizes additional images on the fly, tackles unbalanced data and 
+strengthens its performance on our semantic segmentation task. 
+5. Discussion 
+5.1. Potentials in detecting and discriminating marine pollutants in S2 
+data 
+Based on our experimental results, the MariNeXt framework can 
+distinguish the two primary marine pollution forms, i.e., MD and Oil , on 
+optical S2 images. The quantitative assessment presented in Table 5 
+indicated that only 0.1 % of MD was classified as Oil , while 0.02 % of Oil 
+was predicted as MD . Furthermore, the calculated T-SNE plot ( Figure S2 ) 
+indicates a clear separation potential in the 2D space between these two 
+pollutants. Based on these experiments, we conclude that it is feasible to 
+create effective marine monitoring solutions that can consider both 
+classes without significant misclassification issues. 
+Oil Spill. Based on both quantitative ( Table 5 ) and qualitative results 
+( Fig. 5 ), we reveal the most challenging cases for Oil . Most of these cases 
+correspond to sparse Oil regions without distinct spatial patterns clas -
+sified as MWater ( Fig. 5 ). Moreover, Waves are frequently misclassified 
+as Oil ( Fig. S1 a), ( Table 5 ). The main source of these misclassifications is 
+that Oil , MWater (including sea state look-alikes) and Waves can be 
+spectrally similar, leading to a significant overlap in T-SNE plot ( Fig. 6 ). 
+We argue that these observations are due to the high spectral variations 
+derived from different oil concentrations and weathering processes. 
+These outcomes are in accordance with the literature since Oil has been 
+proven to present spectral patterns similar to Water and Waves ( Fingas 
+and Brown, 2018; Sun et al., 2015; Trujillo-Acatitla et al., 2022 ). 
+However, MariNeXt managed to tackle these similarities, achieving a 
+relatively high F
+1 
+of 78.3 % for Oil . 
+In order to further assess MariNeXt ’ s efficiency, we present the 
+learned feature space against the initial one (based on Spectral Angle 
+Mapping) ( Figure S3 ). Specifically, we extract the output features of the 
+MariNeXt encoder, as they are given to the decoder, and visualize them 
+( Figure S3 b). During the training process, MariNeXt managed to learn 
+rich representations of the input data and alleviate the challenging issue 
+of Oil , Waves and MWater, by separating them to a certain extent in the 
+feature space ( Figure S3 b). 
+Marine Debris. For MD , the most competing classes were Ship , Sea 
+snot and NatM ( Table 5 , Figure S1 a,b,c). As can be observed in the cor -
+responding T-SNE plot ( Fig. 7 ), despite the overall distinct cluster rep -
+resentations, there are several low-density NatM and Sea snot pixels that 
+overlap with the MD cluster. Dense MD pixels are also depicted in the Ship 
+cluster, which is in accordance with the literature ( Kikaki et al., 2022 ). 
+Fig. 7. T-SNE Analysis on MADOS dataset using Spectral Angle Mapping for Marine Debris, Ship, Natural Organic Material and Sea snot.  
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+
+===== PAGE 14 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+52
+Interestingly, the main MD and Sea snot clusters are distinguished 
+(Fig. 7), suggesting that the considered classes can be differentiated 
+under certain circumstances (e.g., Chlorophyll pigments presence), as 
+was also reported by Papageorgiou et al. (2022). Although MD detection 
+from current sensors is quite challenging (Martinez-Vicente, 2022; 
+Politikos et al., 2023), we show that state-of-the-art deep neural net -
+works like MariNeXt can contribute to addressing certain overlaps, e.g., 
+MD against Ship and Sea snot (Figure S4). Still, the most competing 
+feature for MD is NatM due to the usually similar spatial patterns and 
+spectral behavior (Figure S4b). 
+Water-related Classes. In general, MWater, SLWater and TWater 
+perform well with a relatively small number of false positives. However, 
+in some cases, SWater is misclassified as TWater, and Waves and SWater 
+are predicted as MWater (Table 5, Fig. 5d). The corresponding T-SNE 
+plot (Figure S5a) also indicates that water-related classes can exhibit, in 
+some cases, similar spectral characteristics. The most well-separated 
+cluster was formed by SLWater (Figure S5a), which presents distinct 
+spectral behavior due to the increased concentrations of suspended 
+sediments (highest Recall in Table 5). Recent studies have also reported 
+this outcome (Kikaki et al., 2022; Mikeli et al., 2022). On the other hand, 
+the Waves class (with relatively high-intensity values) presents the 
+greatest spectral variance derived from the different sea state conditions 
+(Figure S5a, Fig. 6). Although MariNeXt contributes to the separation of 
+the water-related classes, we highlight that the Waves class is the most 
+challenging, and its accurate detection is crucial for the overall perfor -
+mance of any operational marine mapping system. In supplementary, we 
+provide more discussion about the other classes (Text S1). 
+5.2. Limitations & challenges 
+MADOS fills a current gap in benchmark data availability for marine 
+pollution detection, and the MariNeXt framework seems capable of 
+classifying competing marine classes. That being said, some limitations 
+need to be considered. First, MADOS is, by nature, an unbalanced 
+dataset. Classes like MWater and Oil are abundant in the dataset while 
+Jellyfish, Foam and NatM are less represented. As a result, MariNeXt’s 
+ability to detect these less representative classes might potentially be 
+limited in regions beyond the dataset’s coverage. MADOS can be 
+expanded in the future with further observations from different regions 
+to enhance the predictive capabilities of MariNeXt. This will boost the 
+detection accuracies on these less representative classes, particularly 
+improving the model’s performance when applied to large-scale real- 
+world applications. Furthermore, S2 data limitations (Hu, 2022), com -
+bined with diverse marine environmental conditions, and not always 
+consistent atmospheric correction processes, led to high variability in 
+MADOS reflectance values. These challenges need to be addressed in any 
+operational remote sensing system. Also, during our experimental vali -
+dation, we observed some systematic false positives such as Waves 
+around OilPlat, OilPlat mixed with Ship and MD spikes (Figure S1). Post- 
+processing strategies can tackle these systematic spurious correlations 
+and keep only the main floating object. 
+Putting the limitations aside, MADOS is a valuable dataset that 
+benchmarks ML algorithms for marine pollution detection from open S2 
+data, supporting the development of future operational marine moni -
+toring solutions. In addition to the semantic segmentation, MADOS can 
+contribute to other ML and remote sensing tasks, including semi-, self- or 
+unsupervised and transfer learning. We also encourage the community 
+to examine pan-sharpening methods or other upsampling techniques 
+beyond Nearest Neighbor resampling that has been mostly employed. 
+6. Conclusions 
+This study introduces MADOS, a globally-distributed benchmark 
+dataset for Marine Debris and Oil Spill detection from Sentinel-2 satellite 
+imagery. MADOS consists of competing marine classes and almost 1.5 
+million annotated pixels, being to the best of our knowledge, the largest 
+available Sentinel-2 dataset for marine pollutants. We have also intro -
+duced MariNeXt, a novel DL framework capable of recognizing specific 
+spatial patterns and distinguishing competing classes that cannot be 
+spectrally separated. Through our experiments, MariNeXt led to prom -
+ising prediction maps and outperformed the other ML baselines in all 
+quantitative metrics. 
+We also demonstrate that Oil and MD tend to be separable and 
+detectable. Most false positives and negatives are related to low-density 
+floating matters, objects composed of similar materials or presenting 
+high-intensity values, and some water-related classes (i.e., Waves). By 
+considering, without exceptions, the competing sea surface features and 
+water-related classes, reliable operational monitoring solutions can be 
+developed using the openly available multispectral data. Still, several 
+challenges exist, including the scarcity of in situ data, the need for more 
+balanced datasets, and the requirement for more sophisticated machine 
+learning models capable of accommodating multi-temporal data to 
+facilitate informed decision-making. 
+CRediT authorship contribution statement 
+Katerina Kikaki: Conceptualization, Data Curation, Methodology, 
+Writing – original draft, Writing – review & editing. Ioannis Kako -
+georgiou: Data Curation, Methodology, Software, Writing – original 
+draft, Writing – review & editing. Ibrahim Hoteit: Writing – review & 
+editing. Konstantinos Karantzalos: Conceptualization, Supervision, 
+Writing – review & editing. 
+Declaration of competing interest 
+The authors declare that they have no known competing financial 
+interests or personal relationships that could have appeared to influence 
+the work reported in this paper. 
+Acknowledgments 
+We thank Prof. Chuanmin Hu (University of South Florida) for 
+fruitful discussions about the spectral behavior of floating marine debris 
+and other floating materials. We thank our colleague Antonis Kou -
+troumpas (NTUA) for his contribution to the Oil spill events collection. 
+Ioannis Kakogeorgiou acknowledges the support by Hellenic Foundation 
+for Research and Innovation (HFRI) and the General Secretariat of 
+Research and Innovation (GSRI) under the 4th Call for HFRI Scholar -
+ships to PhD Candidates (grant: 11252). Part of this research was sup -
+ported by the research project BiCUBES “Analysis-Ready Geospatial Big 
+Data Cubes and Cloud-based Analytics for Monitoring Efficiently our 
+Land & Water” funded by HFRI and the “Intelligent Early-Warning Oil 
+Spill Detection and Prediction System for the Arabian Gulf and the Red 
+Sea” funded by Saudi Aramco. Last, we thank NVIDIA for the support 
+with the donation of GPU hardware. 
+Appendix A. Supplementary data 
+Supplementary data to this article can be found online at https://doi. 
+org/10.1016/j.isprsjprs.2024.02.017. 
+References 
+Abou Samra, R.M., Ali, R.R., 2022. Monitoring of oil spill in the offshore zone of the Nile 
+Delta using Sentinel data. Mar. Pollut. Bull. 179, 113718 https://doi.org/10.1016/j. 
+marpolbul.2022.113718. 
+Al-Ruzouq, R., Gibril, M.B.A., Shanableh, A., Kais, A., Hamed, O., Al-Mansoori, S., 
+Khalil, M.A., 2020. Sensors, Features, and Machine Learning for Oil Spill Detection 
+and Monitoring: A Review. Remote Sens. (Basel) 12, 3338. https://doi.org/10.3390/ 
+rs12203338. 
+Althawadi, J.J.A., Hashim, M., 2019. AN APPROACH OF VICARIOUS CALIBRATION OF 
+SENTINEL-2 SATELLITE MULTISPECTRAL IMAGE BASED ON SPECTRAL LIBRARY 
+FOR MAPPING OIL SPILLS, in: The International Archives of the Photogrammetry, 
+Remote Sensing and Spatial Information Sciences. Presented at the ISPRS WG IV/ 
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+
+===== PAGE 15 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+53
+I < br > 6th International Conference on Geomatics and Geospatial Technology (GGT 
+2019) (Volume XLII-4/W16) - 1 & ndash;3 October 2019, Kuala Lumpur, Malaysia, 
+Copernicus GmbH, pp. 117 – 121. Doi: 10.5194/isprs-archives-XLII-4-W16-117-2019. 
+Argamosa, R.J.L., Blanco, A.C., Reyes, R.B., 2022. Mapping Oil Spills on sea surface from 
+Sentinel-2 images using Proncipal Components and categorical boosting, in: The 
+International Archives of the Photogrammetry, Remote Sensing and Spatial 
+Information Sciences. Presented at the ISPRS Joint International Conference 
+Geospatial Asia-Europe 2021 and GeoAdvances 2021;6 October 2021, online, 
+Copernicus GmbH, pp. 33 – 38. Doi: 10.5194/isprs-archives-XLVI-4-W3-2021-33- 
+2022. 
+Arias, M., Sumerot, R., Delaney, J., Coulibaly, F., Cozar, A., Aliani, S., Suaria, G., 
+Papadopoulou, T., Corradi, P., 2021. Advances on remote sensing of windrows as 
+proxies for marine litter based on sentinel-2/MSI datasets. In: 2021 IEEE 
+International Geoscience and Remote Sensing Symposium IGARSS. Presented at the 
+2021 IEEE International Geoscience and Remote Sensing Symposium IGARSS, 
+pp. 1126 – 1129. https://doi.org/10.1109/IGARSS47720.2021.9555139 . 
+Barboza, L.G.A., Dick Vethaak, A., Lavorante, B.R.B.O., Lundebye, A.-K., Guilhermino, L., 
+2018. Marine microplastic debris: An emerging issue for food security, food safety 
+and human health. Mar. Pollut. Bull. 133, 336 – 348. https://doi.org/10.1016/j. 
+marpolbul.2018.05.047 . 
+Basu, B., Sannigrahi, S., Sarkar Basu, A., Pilla, F., 2021. Development of novel 
+classification algorithms for detection of floating plastic debris in coastal 
+waterbodies using multispectral sentinel-2 remote sensing imagery. Remote Sens. 
+(Basel) 13, 1598. https://doi.org/10.3390/rs13081598 . 
+Beaumont, N.J., Aanesen, M., Austen, M.C., B ¨orger, T., Clark, J.R., Cole, M., Hooper, T., 
+Lindeque, P.K., Pascoe, C., Wyles, K.J., 2019. Global ecological, social and economic 
+impacts of marine plastic. Mar. Pollut. Bull. 142, 189 – 195. https://doi.org/10.1016/ 
+j.marpolbul.2019.03.022 . 
+Biermann, L., Clewley, D., Martinez-Vicente, V., Topouzelis, K., 2020. Finding plastic 
+patches in coastal waters using optical satellite data. Sci Rep 10, 5364. https://doi. 
+org/10.1038/s41598-020-62298-z . 
+Booth, H., Ma, W., Karakus ¸ , O., 2023. High-precision density mapping of marine debris 
+and floating plastics via satellite imagery. Sci Rep 13, 6822. https://doi.org/ 
+10.1038/s41598-023-33612-2 . 
+Breiman, L., 2001. Random Forests. Mach. Learn. 45, 5 – 32. https://doi.org/10.1023/A: 
+1010933404324 . 
+Cadiou, J.-F., Gerigny, O., Koren, 
+ˇ
+S., Zeri, C., Kaberi, H., Alomar, C., Panti, C., Fossi, M. 
+C., Adamopoulou, A., Digka, N., Deudero, S., Concato, M., Carbonell, A., Baini, M., 
+Galli, M., Galgani, F., 2020. Lessons learned from an intercalibration exercise on the 
+quantification and characterisation of microplastic particles in sediment and water 
+samples. Mar. Pollut. Bull. 154, 111097 https://doi.org/10.1016/j. 
+marpolbul.2020.111097 . 
+Ciappa, A.C., 2021. Marine plastic litter detection offshore Hawai ’ i by Sentinel-2. Mar. 
+Pollut. Bull. 168, 112457 https://doi.org/10.1016/j.marpolbul.2021.112457 . 
+Ciappa, A.C., 2022. Marine Litter Detection by Sentinel-2: A Case Study in North Adriatic 
+(Summer 2020). Remote Sens. (Basel) 14, 2409. https://doi.org/10.3390/ 
+rs14102409 . 
+Ciocarlan, A., Stoian, A., 2021. Ship Detection in Sentinel 2 Multi-Spectral Images with 
+Self-Supervised Learning. Remote Sens. (Basel) 13, 4255. https://doi.org/10.3390/ 
+rs13214255 . 
+Dierssen, H.M., 2019. Hyperspectral Measurements, Parameterizations, and Atmospheric 
+Correction of Whitecaps and Foam From Visible to Shortwave Infrared for Ocean 
+Color Remote Sensing. Front. Earth Sci. 7 https://doi.org/10.3389/ 
+feart.2019.00014 . 
+Dong, Y., Liu, Y., Hu, C., MacDonald, I.R., Lu, Y., 2022. Chronic oiling in global oceans. 
+Science 376, 1300 – 1304. https://doi.org/10.1126/science.abm5940 . 
+Dosovitskiy, A., Beyer, L., Kolesnikov, A., Weissenborn, D., Zhai, X., Unterthiner, T., 
+Dehghani, M., Minderer, M., Heigold, G., Gelly, S., Uszkoreit, J., Houlsby, N., 2020. 
+An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale. 
+Presented at the International Conference on Learning Representations. 
+Duarte, M.M., Azevedo, L., 2023. Automatic detection and identification of floating 
+marine debris using multi-spectral satellite imagery. IEEE Trans. Geosci. Remote 
+Sens. 1 – 1 https://doi.org/10.1109/TGRS.2023.3283607 . 
+Dvornik, N., Mairal, J., Schmid, C., 2018. Modeling visual context is key to augmenting 
+object detection datasets. In: Ferrari, V., Hebert, M., Sminchisescu, C., Weiss, Y. 
+(Eds.), Computer Vision – ECCV 2018, Lecture Notes in Computer Science. Springer 
+International Publishing, Cham, pp. 375 – 391. https://doi.org/10.1007/978-3-030- 
+01258-8_23 . 
+Dwibedi, D., Misra, I., Hebert, M., 2017. Cut, paste and learn: surprisingly easy synthesis 
+for instance detection. In: 2017 IEEE International Conference on Computer Vision 
+(ICCV). Presented at the 2017 IEEE International Conference on Computer Vision 
+(ICCV), pp. 1310 – 1319. https://doi.org/10.1109/ICCV.2017.146 . 
+Eriksen, M., Liboiron, M., Kiessling, T., Charron, L., Alling, A., Lebreton, L., Richards, H., 
+Roth, B., Ory, N.C., Hidalgo-Ruz, V., Meerhoff, E., Box, C., Cummins, A., Thiel, M., 
+2018. Microplastic sampling with the AVANI trawl compared to two neuston trawls 
+in the Bay of Bengal and South Pacific. Environ. Pollut. 232, 430 – 439. https://doi. 
+org/10.1016/j.envpol.2017.09.058 . 
+Fang, H.-S., Sun, J., Wang, R., Gou, M., Li, Y.-L., Lu, C., 2019. InstaBoost: Boosting 
+instance segmentation via probability map guided copy-pasting. In: 2019 IEEE/CVF 
+International Conference on Computer Vision (ICCV). Presented at the 2019 IEEE/ 
+CVF International Conference on Computer Vision (ICCV), pp. 682 – 691. https://doi. 
+org/10.1109/ICCV.2019.00077 . 
+Fingas, M., Brown, C.E., 2018. A review of oil spill remote sensing. Sensors 18, 91. 
+https://doi.org/10.3390/s18010091 . 
+Garaba, S.P., Dierssen, H.M., 2018. An airborne remote sensing case study of synthetic 
+hydrocarbon detection using short wave infrared absorption features identified from 
+marine-harvested macro- and microplastics. Remote Sens. Environ. 205, 224 – 235. 
+https://doi.org/10.1016/j.rse.2017.11.023 . 
+Garcia-Pineda, O., Staples, G., Jones, C.E., Hu, C., Holt, B., Kourafalou, V., 
+Graettinger, G., DiPinto, L., Ramirez, E., Streett, D., Cho, J., Swayze, G.A., Sun, S., 
+Garcia, D., Haces-Garcia, F., 2020. Classification of oil spill by thicknesses using 
+multiple remote sensors. Remote Sens. Environ. 236, 111421 https://doi.org/ 
+10.1016/j.rse.2019.111421 . 
+Geng, Z., Guo, M.-H., Chen, H., Li, X., Wei, K., Lin, Z., 2022. Is attention better than 
+matrix decomposition? Presented at the International Conference on Learning 
+Representations . 
+Ghiasi, G., Cui, Y., Srinivas, A., Qian, R., Lin, T.-Y., Cubuk, E.D., Le, Q.V., Zoph, B., 2021. 
+Simple copy-paste is a strong data augmentation method for instance segmentation. 
+In: 2021 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR). 
+Presented at the 2021 IEEE/CVF Conference on Computer Vision and Pattern 
+Recognition (CVPR), pp. 2917 – 2927. https://doi.org/10.1109/ 
+CVPR46437.2021.00294 . 
+Gonzaga, M.L.R., Wong, M.T.S., Blanco, A.C., Principe, J.A., 2021. Utilization of 
+SENTINEL-2 imagery in the estimation of plastics among floating debris along the 
+coast of manila bay. ISPRS - international archives of the photogrammetry. Remote 
+Sensing and Spatial Information Sciences 46W6 177 – 184. https://doi.org/10.5194/ 
+isprs-archives-XLVI-4-W6-2021-177-2021 . 
+Gonzalo-Martín, C., García-Pedrero, A., Lillo-Saavedra, M., 2021. Improving deep 
+learning sorghum head detection through test time augmentation. Comput. Electron. 
+Agric. 186, 106179 https://doi.org/10.1016/j.compag.2021.106179 . 
+Guo, M.-H., Lu, C.-Z., Hou, Q., Liu, Z.-N., Cheng, M.-M., Hu, S., 2022. SegNeXt: 
+Rethinking convolutional attention design for semantic segmentation. Presented at 
+the Advances in Neural Information Processing Systems . 
+Heiselberg, H., 2020. Ship-iceberg classification in SAR and multispectral satellite images 
+with neural networks. Remote Sens. (Basel) 12, 2353. https://doi.org/10.3390/ 
+rs12152353 . 
+Heiselberg, P., Heiselberg, H., 2017. Ship-iceberg discrimination in sentinel-2 
+multispectral imagery by supervised classification. Remote Sens. (Basel) 9, 1156. 
+https://doi.org/10.3390/rs9111156 . 
+Hu, C., 2021. Remote detection of marine debris using satellite observations in the visible 
+and near infrared spectral range: Challenges and potentials. Remote Sens. Environ. 
+259, 112414 https://doi.org/10.1016/j.rse.2021.112414 . 
+Hu, C., 2022. Remote detection of marine debris using Sentinel-2 imagery: A cautious 
+note on spectral interpretations. Mar. Pollut. Bull. 183, 114082 https://doi.org/ 
+10.1016/j.marpolbul.2022.114082 . 
+Hu, C., Qi, L., Xie, Y., Zhang, S., Barnes, B.B., 2022. Spectral characteristics of sea snot 
+reflectance observed from satellites: Implications for remote sensing of marine 
+debris. Remote Sens. Environ. 269, 112842 https://doi.org/10.1016/j. 
+rse.2021.112842 . 
+Jamali, A., Mahdianpari, M., 2021. A cloud-based framework for large-scale monitoring 
+of ocean plastics using multi-spectral satellite imagery and generative adversarial 
+network. Water 13, 2553. https://doi.org/10.3390/w13182553 . 
+Kavzoglu, T., Goral, M., 2022. Google Earth Engine for Monitoring Marine Mucilage: 
+Izmit Bay in Spring 2021. Hydrology 9, 135. https://doi.org/10.3390/ 
+hydrology9080135 . 
+Kavzo ˘glu, T., Tonbul, H., Ç ¨olkesen, 
+˙
+I., Seferci ˙ k, U.G., 2021. The Use of Object-Based 
+Image Analysis for Monitoring 2021 marine mucilage bloom in the sea of marmara. 
+International Journal of Environment and Geoinformatics 8, 529 – 536. https://doi. 
+org/10.30897/ijegeo.990875 . 
+Kikaki, K., Kakogeorgiou, I., Mikeli, P., Raitsos, D.E., Karantzalos, K., 2022. MARIDA: A 
+benchmark for Marine Debris detection from Sentinel-2 remote sensing data. PLoS 
+One 17, e0262247 . 
+Kikaki, A., Karantzalos, K., Power, C.A., Raitsos, D.E., 2020. Remotely sensing the source 
+and transport of marine plastic debris in bay islands of honduras (Caribbean Sea). 
+Remote Sens. (Basel) 12, 1727. https://doi.org/10.3390/rs12111727 . 
+Kolokoussis, P., Karathanassi, V., 2018. Oil spill detection and mapping using sentinel 2 
+imagery. Journal of Marine Science and Engineering 6, 4. https://doi.org/10.3390/ 
+jmse6010004 . 
+Krestenitis, M., Orfanidis, G., Ioannidis, K., Avgerinakis, K., Vrochidis, S., 
+Kompatsiaris, I., 2019. Oil spill identification from satellite images using deep neural 
+networks. Remote Sens. (Basel) 11, 1762. https://doi.org/10.3390/rs11151762 . 
+Liu, Z., Yuan, L., Weng, L., Yang, Y., 2017. A high resolution optical satellite image 
+dataset for ship recognition and some new baselines. In: Presented at the 6th 
+International Conference on Pattern Recognition Applications and Methods, 
+pp. 324 – 331 . 
+Liu, Y., Zhao, J., Qin, Y., 2021. A novel technique for ship wake detection from optical 
+images. Remote Sens. Environ. 258, 112375 https://doi.org/10.1016/j. 
+rse.2021.112375 . 
+Martinez-Vicente, V., 2022. The need for a dedicated marine plastic litter satellite 
+mission. Nat Rev Earth Environ 3, 728 – 729. https://doi.org/10.1038/s43017-022- 
+00360-2 . 
+Martínez-Vicente, V., Clark, J.R., Corradi, P., Aliani, S., Arias, M., Bochow, M., 
+Bonnery, G., Cole, M., C ´ozar, A., Donnelly, R., Echevarría, F., Galgani, F., Garaba, S. 
+P., Goddijn-Murphy, L., Lebreton, L., Leslie, H.A., Lindeque, P.K., Maximenko, N., 
+Martin-Lauzer, F.-R., Moller, D., Murphy, P., Palombi, L., Raimondi, V., Reisser, J., 
+Romero, L., Simis, S.G.H., Sterckx, S., Thompson, R.C., Topouzelis, K.N., van 
+Sebille, E., Veiga, J.M., Vethaak, A.D., 2019. Measuring marine plastic debris from 
+space: Initial assessment of observation requirements. Remote Sens. (Basel) 11, 
+2443. https://doi.org/10.3390/rs11202443 . 
+Mifdal, J., Long ´ep ´e, N., Ru ß wurm, M., 2021. Towards Detecting Floating Objects on a 
+global scale with learned Spatial Features Using Sentinel- 2, in: ISPRS Annals of the 
+Photogrammetry, Remote Sensing and Spatial Information Sciences. Presented at the 
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+
+===== PAGE 16 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+54
+XXIV ISPRS Congress, Commission III - 2021 edition, 9 July 2021, Copernicus 
+GmbH, pp. 285 – 293. Doi: 10.5194/isprs-annals-V-3-2021-285-2021. 
+Mikeli, P., Kikaki, K., Kakogeorgiou, I., Karantzalos, K., 2022. How Challenging is the 
+Discrimination of Floating Materials on the sea surface using High Resolution 
+Multispectral Satellite Data?, in: The International Archives of the Photogrammetry, 
+Remote Sensing and Spatial Information Sciences. Presented at the XXIV ISPRS 
+Congress, Commission III - 2022 edition, 11 June 2022, Nice, France, Copernicus 
+GmbH, pp. 151 – 157. Doi: 10.5194/isprs-archives-XLIII-B3-2022-151-2022. 
+MMSegmentation Contributors, 2020. OpenMMLab Semantic Segmentation Toolbox and 
+Benchmark. 
+Moshkov, N., Mathe, B., Kertesz-Farkas, A., Hollandi, R., Horvath, P., 2020. Test-time 
+augmentation for deep learning-based cell segmentation on microscopy images. Sci 
+Rep 10, 5068. https://doi.org/10.1038/s41598-020-61808-3 . 
+Mukonza, S.S., Chiang, J.-L., 2022. Satellite sensors as an emerging technique for 
+monitoring macro- and microplastics in aquatic ecosystems. Water Emerging 
+Contaminants & Nanoplastics 1, 17. https://doi.org/10.20517/wecn.2022.12 . 
+NOAA, 2016. Open Water Oil Identification Job Aid for Aerial Observation | response. 
+restoration.noaa.gov [WWW Document]. URL https://response.restoration.noaa.go 
+v/oil-and-chemical-spills/oil-spills/resources/open-water-oil-identification-job-aid. 
+html (accessed 2.1.23). 
+Olyaei, M., Ebtehaj, A., Hong, J., 2022. Optical detection of marine debris using deep 
+knockoff. IEEE Trans. Geosci. Remote Sens. 60, 1 – 12. https://doi.org/10.1109/ 
+TGRS.2022.3228638 . 
+Papageorgiou, D., Topouzelis, K., Suaria, G., Aliani, S., Corradi, P., 2022. Sentinel-2 
+detection of floating marine litter targets with partial spectral unmixing and spectral 
+comparison with other floating materials (Plastic Litter Project 2021). Remote Sens. 
+(Basel) 14, 5997. https://doi.org/10.3390/rs14235997 . 
+Parinos, C., Hatzianestis, I., Chourdaki, S., Plakidi, E., Gogou, A., 2019. Imprint and 
+short-term fate of the Agia Zoni II tanker oil spill on the marine ecosystem of 
+Saronikos Gulf. Sci. Total Environ. 693, 133568 https://doi.org/10.1016/j. 
+scitotenv.2019.07.374 . 
+Politikos, D.V., Adamopoulou, A., Petasis, G., Galgani, F., 2023. Using artificial 
+intelligence to support marine macrolitter research: A content analysis and an online 
+database. Ocean Coast. Manag. 233, 106466 https://doi.org/10.1016/j. 
+ocecoaman.2022.106466 . 
+Qi, L., Hu, C., Mikelsons, K., Wang, M., Lance, V., Sun, S., Barnes, B.B., Zhao, J., Van der 
+Zande, D., 2020. In search of floating algae and other organisms in global oceans and 
+lakes. Remote Sens. Environ. 239, 111659 https://doi.org/10.1016/j. 
+rse.2020.111659 . 
+Qi, L., Hu, C., 2021. To what extent can Ulva and Sargassum be detected and separated in 
+satellite imagery? Harmful Algae 103, 102001. https://doi.org/10.1016/j. 
+hal.2021.102001 . 
+Qi, L., Wang, M., Hu, C., Holt, B., 2022. On the capacity of Sentinel-1 synthetic aperture 
+radar in detecting floating macroalgae and other floating matters. Remote Sens. 
+Environ. 280, 113188 https://doi.org/10.1016/j.rse.2022.113188 . 
+Rajendran, S., Sadooni, F.N., Al-Kuwari, H.-A.-S., Oleg, A., Govil, H., Nasir, S., 
+Vethamony, P., 2021a. Monitoring oil spill in Norilsk. Russia Using Satellite Data. Sci 
+Rep 11, 3817. https://doi.org/10.1038/s41598-021-83260-7 . 
+Rajendran, S., Vethamony, P., Sadooni, F.N., Al-Kuwari, H.-A.-S., Al-Khayat, J.A., 
+Govil, H., Nasir, S., 2021b. Sentinel-2 image transformation methods for mapping oil 
+spill – A case study with Wakashio oil spill in the Indian Ocean, off Mauritius. 
+MethodsX 8, 101327. https://doi.org/10.1016/j.mex.2021.101327 . 
+Rajendran, S., Vethamony, P., Sadooni, F.N., Al-Kuwari, H.-A.-S., Al-Khayat, J.A., 
+Seegobin, V.O., Govil, H., Nasir, S., 2021c. Detection of Wakashio oil spill off 
+Mauritius using Sentinel-1 and 2 data: Capability of sensors, image transformation 
+methods and mapping. Environ. Pollut. 274, 116618 https://doi.org/10.1016/j. 
+envpol.2021.116618 . 
+Ronneberger, O., Fischer, P., Brox, T., 2015. U-Net: Convolutional Networks for 
+Biomedical Image Segmentation, in: Navab, N., Hornegger, J., Wells, W.M., Frangi, 
+A.F. (Eds.), Medical Image Computing and Computer-Assisted Intervention – MICCAI 
+2015, Lecture Notes in Computer Science. Springer International Publishing, Cham, 
+pp. 234 – 241. Doi: 10.1007/978-3-319-24574-4_28. 
+Ru ß wurm, M., Gul, D., Tuia, D., 2023. Improved marine debris detection in satellite 
+imagery with an automatic refinement of coarse hand annotations, in: ICLR 
+Workshop on Machine Learning for Remote Sensing. 
+Sannigrahi, S., Basu, B., Basu, A.S., Pilla, F., 2022. Development of automated marine 
+floating plastic detection system using Sentinel-2 imagery and machine learning 
+models. Mar. Pollut. Bull. 178, 113527 https://doi.org/10.1016/j. 
+marpolbul.2022.113527 . 
+Shahidul Islam, M.d., Tanaka, M., 2004. Impacts of pollution on coastal and marine 
+ecosystems including coastal and marine fisheries and approach for management: a 
+review and synthesis. Mar. Pollut. Bull. 48, 624 – 649. https://doi.org/10.1016/j. 
+marpolbul.2003.12.004 . 
+Sol ´e G ´omez, 
+`
+A., Scandolo, L., Eisemann, E., 2022. A learning approach for river debris 
+detection. Int. J. Appl. Earth Obs. Geoinf. 107, 102682 https://doi.org/10.1016/j. 
+jag.2022.102682 . 
+Song, Z., Sui, H., Wang, Y., 2014. Automatic ship detection for optical satellite images 
+based on visual attention model and LBP, in: 2014 IEEE Workshop on Electronics, 
+Computer and Applications. Presented at the 2014 IEEE Workshop on Electronics, 
+Computer and Applications, pp. 722 – 725. Doi: 10.1109/IWECA.2014.6845723. 
+ˇ
+Stepec, D., Martin ˇci ˇc, T., Sko ˇcaj, D., 2019. Automated System for Ship Detection from 
+Medium Resolution Satellite Optical Imagery, in: OCEANS 2019 MTS/IEEE 
+SEATTLE. Presented at the OCEANS 2019 MTS/IEEE SEATTLE, pp. 1 – 10. Doi: 
+10.23919/OCEANS40490.2019.8962707. 
+Sun, S., Hu, C., Tunnell, J.W., 2015. Surface oil footprint and trajectory of the Ixtoc-I oil 
+spill determined from Landsat/MSS and CZCS observations. Mar. Pollut. Bull. 101, 
+632 – 641. https://doi.org/10.1016/j.marpolbul.2015.10.036 . 
+Sun, S., Hu, C., Garcia-Pineda, O., Kourafalou, V., Le H ´enaff, M., Androulidakis, Y., 2018. 
+Remote sensing assessment of oil spills near a damaged platform in the Gulf of 
+Mexico. Mar. Pollut. Bull. 136, 141 – 151. https://doi.org/10.1016/j. 
+marpolbul.2018.09.004 . 
+Temitope Yekeen, S., Balogun, A.-L., 2020. Advances in remote sensing technology, 
+machine learning and deep learning for marine oil spill detection. Prediction and 
+Vulnerability Assessment. Remote Sensing 12, 3416. https://doi.org/10.3390/ 
+rs12203416 . 
+Themistocleous, K., Papoutsa, C., Michaelides, S., Hadjimitsis, D., 2020. Investigating 
+detection of floating plastic litter from space using sentinel-2 imagery. Remote Sens. 
+(Basel) 12, 2648. https://doi.org/10.3390/rs12162648 . 
+Topouzelis, K., Papageorgiou, D., Karagaitanakis, A., Papakonstantinou, A., Arias 
+Ballesteros, M., 2020. Remote sensing of sea surface artificial floating plastic targets 
+with sentinel-2 and unmanned aerial systems (Plastic Litter Project 2019). Remote 
+Sens. (Basel) 12, 2013. https://doi.org/10.3390/rs12122013 . 
+Trujillo-Acatitla, R., Tuxpan-Vargas, J., Ovando-V ´azquez, C., 2022. Oil spills: Detection 
+and concentration estimation in satellite imagery, a machine learning approach. 
+Mar. Pollut. Bull. 184, 114132 https://doi.org/10.1016/j.marpolbul.2022.114132 . 
+Tuzcu Kokal, A., Olgun, N., Musao ˘glu, N., 2022. Detection of mucilage phenomenon in 
+the Sea of Marmara by using multi-scale satellite data. Environ Monit Assess 194, 
+585. https://doi.org/10.1007/s10661-022-10267-6 . 
+Tysi ą c, P., Strelets, T., Tuszy ´nska, W., 2022. The application of satellite image analysis in 
+oil spill detection. Appl. Sci. 12, 4016. https://doi.org/10.3390/app12084016 . 
+van der Maaten, L., Hinton, G., 2008. Visualizing Data using t-SNE. J. Mach. Learn. Res. 
+9, 2579 – 2605 . 
+Van der Zande, D., Green, J., Ruddick, K., 2014. JellySpec: feasibility study for 
+determining the spectral characteristics of jellyfish from Belgian waters. Ocean 
+Optics XXII, Portland, USA .  
+Vanhellemont, Q., Ruddick, K., 2018. Atmospheric correction of metre-scale optical 
+satellite data for inland and coastal water applications. Remote Sens. Environ. 216, 
+586 – 597. https://doi.org/10.1016/j.rse.2018.07.015 . 
+Walker, T.R., 2021. (Micro)plastics and the UN sustainable development goals. Curr. 
+Opin. Green Sustainable Chem. 30, 100497 https://doi.org/10.1016/j. 
+cogsc.2021.100497 . 
+Wang, M., Hu, C., 2021a. Automatic extraction of sargassum features from sentinel-2 MSI 
+images. IEEE Trans Geosci Remote Sens 59, 2579 – 2597. https://doi.org/10.1109/ 
+TGRS.2020.3002929 . 
+Wang, M., Hu, C., 2021b. Satellite remote sensing of pelagic Sargassum macroalgae: The 
+power of high resolution and deep learning. Remote Sens. Environ. 264, 112631 
+https://doi.org/10.1016/j.rse.2021.112631 . 
+Wang, G., Li, W., Aertsen, M., Deprest, J., Ourselin, S., Vercauteren, T., 2019a. Aleatoric 
+uncertainty estimation with test-time augmentation for medical image segmentation 
+with convolutional neural networks. Neurocomputing 338, 34 – 45. https://doi.org/ 
+10.1016/j.neucom.2019.01.103 . 
+Wang, G., Li, W., Ourselin, S., Vercauteren, T., 2019b. Automatic brain tumor 
+segmentation using convolutional neural networks with test-time augmentation. In: 
+Crimi, A., Bakas, S., Kuijf, H., Keyvan, F., Reyes, M., van Walsum, T. (Eds.), 
+Brainlesion: Glioma, Multiple Sclerosis, Stroke and Traumatic Brain Injuries, Lecture 
+Notes in Computer Science. Springer International Publishing, Cham, pp. 61 – 72. 
+https://doi.org/10.1007/978-3-030-11726-9_6 . 
+Wightman, R., 2019. PyTorch Image Models. 
+Xiao, Y., Liu, R., Kim, K., Zhang, J., Cui, T., 2022. A random forest-based algorithm to 
+distinguish ulva prolifera and sargassum from multispectral satellite images. IEEE 
+Trans. Geosci. Remote Sens. 60, 1 – 15. https://doi.org/10.1109/ 
+TGRS.2021.3071154 . 
+Xie, X., Li, B., Wei, X., 2020. Ship detection in multispectral satellite images under 
+complex environment. Remote Sens. (Basel) 12, 792. https://doi.org/10.3390/ 
+rs12050792 . 
+Yun, S., Han, D., Oh, S.J., Chun, S., Choe, J., Yoo, Y., 2019. Cutmix: Regularization 
+strategy to train strong classifiers with localizable features, in: Proceedings of the 
+IEEE/CVF International Conference on Computer Vision. pp. 6023 – 6032. 
+Zhang, H., Cisse, M., Dauphin, Y.N., Lopez-Paz, D., 2022. mixup: Beyond Empirical Risk 
+Minimization. Presented at the International Conference on Learning 
+Representations. 
+Zhao, J., Temimi, M., Ghedira, H., Hu, C., 2014. Exploring the potential of optical remote 
+sensing for oil spill detection in shallow coastal waters-a case study in the Arabian 
+Gulf. Opt. Express, OE 22, 13755 – 13772. https://doi.org/10.1364/OE.22.013755 . 
+K. Kikaki et al.                                                                                                                                                                                                                                  

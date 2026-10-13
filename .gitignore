@@ -1,3 +1,10 @@
+# AI coding tool local state
+.claude/
+.codex/
+.omc/
+AGENTS.md
+COPILOT_INSTRUCTIONS.md
+
 # Python
 __pycache__/
 *.py[cod]
@@ -153,7 +160,7 @@ temp_*.ps1
 *.backup
 *.orig
 *.rej
-.хуж╬.md
+.О©╫О©╫ж╬.md
 
 # Local hidden markdown notes
 .*.md

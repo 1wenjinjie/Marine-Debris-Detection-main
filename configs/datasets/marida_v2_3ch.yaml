@@ -1,0 +1,18 @@
+# MARIDA v2 dataset - 3 spectral channels (B4,B3,B2 = RGB only)
+# For 6ch vs 3ch ablation: does NIR/SWIR help?
+# Same data files as 6ch - MaskRescueNPYDataset slices arr[..., :3]
+
+path: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/marida_v2
+train: train.txt
+val: val.txt
+test: test.txt
+
+nc: 3
+names:
+  - Marine_Debris
+  - Algae_Organic
+  - Ship
+channels: 3
+
+task: detect
+mode: train

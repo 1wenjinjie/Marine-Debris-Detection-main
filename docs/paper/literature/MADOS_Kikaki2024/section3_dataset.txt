@@ -1,0 +1,219 @@
+3.1. The MADOS benchmark dataset 
+3.1.1. Data processing & curation 
+Satellite sensors with high spatial, spectral and temporal resolution 
+are required to develop operational solutions for monitoring the marine 
+environment. Currently, the openly available Copernicus S2 multispec -
+tral data cover global coastal waters at high spatial resolutions (10 m, 
+20 m and 60 m). Additionally, S2 satellite has a frequent revisit time of 
+approximately five days (depending on the latitude), delivering a large 
+amount of free geospatial data. It also acquires data in 13 spectral bands, 
+which range from the visible to the Short-Wave Infrared (SWIR). 
+Therefore, in our study, we utilized the S2 multispectral satellite images. 
+We collected S2 Level 1C products (Top-of-Atmosphere reflectance) 
+through EarthExplorer (USGS). Similar to previous studies on floating 
+materials detection ( Qi et al., 2020; Sun et al., 2018; Zhao et al., 2014 ), 
+we applied ACOLITE atmospheric processor ( Vanhellemont and Rud -
+dick, 2018 ) to retrieve the Rayleigh reflectance. 
+Data annotation, curation and refining were performed following 
+Kikaki et al. (2020) & (2022) methods and protocols. The annotation 
+was performed by three image-interpretation experts with access to all 
+collected data. To enhance the accuracy and reliability of our dataset, 
+with a particular focus on Marine Debris and Oil Spill classes, we 
+employed an inter-annotators agreement protocol. Specifically, for 
+Marine Debris and Oil Spill , the intersection per two annotators was 
+extracted (i.e., an agreement between at least two annotators regarding 
+the class label). This approach enriched fine-grained annotations of 
+Marine Debris , offering greater detail and precision. As Oil Spill was also a 
+primary category in our focus on marine pollution, we applied this 
+protocol to this class in a similar manner. We also used the same protocol 
+to similarly appearing classes to Marine Debris , i.e., Natural Organic 
+Material and Sparse Floating Algae . For the other classes, the union of the 
+annotated data was calculated. 
+To improve the quality of our annotated data, the structure of the 
+high-dimensional observations was visualized. Thus, we embedded our 
+data in a 2D space, identifying the spectral patterns and outliers. Spe -
+cifically, we utilized the t-distributed Stochastic Neighborhood 
+Embedding (t-SNE) algorithm ( van der Maaten and Hinton, 2008 ) using 
+Spectral Angle Mapping (SAM) as a distance metric. 
+Based on the annotated data, we cropped the S2 scenes into non- 
+overlapped image patches. In the produced dataset, the initial spatial 
+resolution of each spectral band was retained without any upsampling 
+technique. Each provided image corresponds to 2.4x2.4 km
+2
+; thus, the 
+10 m spectral bands form image patches of 240x240 pixels, the 20 m 
+patches of 120x120 pixels and the 60 m patches of 40x40 pixels. 
+3.1.2. MADOS thematic classes and annotations 
+We have constructed MADOS, which contains annotated S2 data 
+based on 174 scenes and 47 tiles captured between 2015 and 2022. 
+Numerous annotations were created consisting of 1,481,155 pixels 
+based on studies, reports and data on marine pollution as well as 
+intensive photo-interpretation ( Table S1 ). Finally, our dataset is 
+distributed over 22 countries ( Fig. 1 ) and contains 15 different thematic 
+classes ( Table 3 ). 
+We focus on two major marine pollutants, i.e., Oil Spill and Marine 
+Table 1 
+Publications for Oil Spill (Oil) mapping using Sentinel-2 data during the period 2018 – 2022.  
+General Info Pre-processing Classification/ Detection 
+Publication Main purpose Study Area Time span # of S2 scenes Atm. Corr. Reflectance Method # of classes 
+Kolokoussis & Karathanassi, 2018 Oil detection Zakynthos Isl. & Saronikos Gulf (Greece) 2017 4 No TOA OBIA, SI 1 
+Sun et al., 2018 Oil detection Gulf of Mexico 2004 – 2016 24 Yes Rayleigh Statistical analysis 1 
+Althawadi & Hashim, 2019 Oil detection & Calibration Arabian Gulf 2016 – 2017 7 Yes Surface Refl. Region-based segmentation, Regression 1 
+Rajendran et al., 2021a Oil detection Ambarnaya river, Russia 2020 14 No TOA SI, Dynamical permafrost model, DSM 5 
+Rajendran et al., 2021c Oil detection Mauritius 2020 6 Yes Surface Refl. PSA, Band ratios, DSM 3 
+Rajendran et al., 2021b Oil detection Mauritius 2020 8 No TOA Band ratios, DSM 1 
+Argamosa et al., 2022 Oil detection Manila Bay, Philippines 2020 2 No TOA PCA, Gradient boosting algor. 2 
+Abou Samra and Ali, 2022 Oil detection Nile Delta 2019 – 2021 N/A Yes Rayleigh Band ratios, DSM 1 
+Tysi ą c et al., 2022 Oil detection Ambarnaya river, Russia 2020 6 No TOA SVM, SI 6 
+Abbreviations: OBIA = Object-Based Image Analysis, SI = Spectral Indices, DSM = Decorrelation Stretch Method, PSA = Parallelepiped Supervised Algorithm, PCA = Principal Component Analysis, N/A = Not Mentioned, 
+SVM = Support Vector Machine. 
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+
+===== PAGE 4 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+42
+Table 2 
+Publications for Marine Debris (MD) mapping using Sentinel-2 data during the period 2018 – 2022.  
+General info Pre-processing Classification/ Detection 
+Publication Main purpose Study Area Time span # of S2 
+scenes 
+Atm. 
+Corr. 
+Reflectance Method # of 
+classes 
+Kikaki et al., 2020 MD sources & pathways 
+detection 
+Honduras Gulf 2014 – 2019 37 Yes Surface Refl. In situ data, Image interpretation, Spectral 
+signatures 
+3 
+Biermann et al., 2020 MD detection Global 2018 – 2019 12 Yes Surface Refl. Naïve Bayes 5 
+Mifdal et al., 2021 Float. Objects detection Global 2018 – 2020 15 Yes Surface Refl., 
+TOA 
+SVM, RF, Naïve Bayes, U-Net 2 
+Gonzaga et al., 2021 MD detection Manila Bay, Philippines 2019 – 2020 6 Yes Surface Refl. Naïve Bayes, MTMF, FDI, NDVI, PI 5 
+Arias et al., 2021 Windrows detection Greece, Honduras N/A 40 Yes Surface Refl., 
+TOA 
+Wasp Spectral Index 1 
+Ciappa, 2021 MD detection Hawaii, N. Adriatic, S. 
+Domingo 
+2020 6 Yes Surface Refl. Red edge bands, NDVI, PI, FDI 5 
+Kikaki et al., 2022 MD detection Global 2015 – 2021 63 Yes Rayleigh RF, U-Net 11 
+Mikeli et al., 2022 MD detection Global 2015 – 2021 63 Yes Rayleigh RF, U-Net 11 
+Olyaei et al., 2022 MD detection Global 2015 – 2021 63 Yes Rayleigh Deep Knockoff, SVM, RF 3 
+Sannigrahi et al., 2022 MD detection Mediterranean Sea 2018 – 2019 & 
+2021 
+27 Yes Surface Refl. SVM, RF 3 
+Sol ´e G ´omez et al., 2022 River debris detection Drina, Los Angeles & Yangtzee 2018 – 2020 30 Yes Surface Refl. U-Net, U-Net3DE, DeepLab V3 + 3 
+Ciappa, 2022 MD detection N.Adriatic, Australia 2020 6 Yes Surface Refl. Spectral bands 4 
+Ru ß wurm et al., 2023 MD detection Global 2015 – 2021 89 Yes Surface Refl. U-Net, Label Refinement Module 1 
+Booth et al., 2023 MD detection & density 
+mapping 
+Global 2015 – 2021 63 Yes Surface Refl. U-Net, MAP-Mapper 1 
+Duarte & Azevedo, 
+2023 
+MD detection Global 2016 – 2021 25 Yes Surface Refl. GANs, SI, XGBoost 7 
+Abbreviations: SVM = Support Vector Machine, RF = Random Forest, MTMF = Mixture Tuned Matched Filtering, FDI = Floating Debris Index, NDVI = Normalized difference vegetation index, PI = Plastic Index, GANs =
+Generative Adversarial Networks, SI = Spectral Indices, XGBoost = Extreme Gradient Boosting, N/A = Not Mentioned. 
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+
+===== PAGE 5 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+43
+Debris . First, oil slicks from different sources (i.e., ship accidents, 
+offshore platforms, discharges due to natural disasters and seafloor 
+natural seepages) were recorded. Our aim was to develop a model 
+capable of detecting one Oil Spill thematic class and not different oil 
+types. However, oil forms of different thicknesses were considered and 
+annotated in MADOS, including all categories established by NOAA 
+(2016) : a) Dark, b) Mousse (emulsified), c) Transitional dark, d) 
+Metallic, e) Rainbow and f) Sheen ( Fig. 2 ). 
+Regarding Marine Debris , we used the open-access MARIDA dataset 
+( Kikaki et al., 2022 ), which distinguishes litter from various sea features. 
+We also increased the number of Marine Debris pixels by adding new 
+observations based on recent reports and publications ( Table S1 ). 
+Following previous studies ( Biermann et al., 2020; Hu et al., 2022; 
+Kikaki et al., 2020; Martínez-Vicente et al., 2019 ), we additionally 
+considered floating materials that have been suggested to be spectrally 
+similar to plastics, or are occasionally aggregated with floating macro -
+plastics on the ocean surface. Thus, Foam , Sargassum , Natural Organic 
+Material (including driftwood), Ships and Sea Snot trajectories ( Hu et al., 
+2022 ) were annotated ( Fig. 2 ). Suspected Jellyfish investigated by Qi 
+et al., (2020) were also taken into account to evaluate the discrimination 
+from Marine Debris and Sea Snot, as previous studies have indicated the 
+potential of spectral similarities ( Hu et al., 2022; Van der Zande et al., 
+2014 ). Classes sometimes observed concurrently with oil slicks, such as 
+Oil Platform and Sparse Floating Algae, were also considered and added. 
+Moreover, sea state look-alikes were annotated and aggregated with the 
+Marine Water class. Other water-related classes recorded on our study 
+regions (i.e., Sediment-Laden Water, Turbid Water, Shallow Water, Waves 
+and Ship Wakes) have also been annotated. Also, sparse Sargassum was 
+grouped with other sparse floating algae species, forming a Sparse 
+Floating Algae (SpFa) super-class. By adding these competing cases, we 
+aim to enable the developed algorithms to discriminate marine pollut -
+ants from the other floating materials and sea surface features. We note 
+that clouds and cloud shadows were not included in our analysis. We 
+consider this a different, quite challenging task that the remote sensing 
+scientific community is working on. Therefore, one could integrate any 
+of the standard software tools (such as MAJA, Fmask, Sen2Cor) into the 
+processing pipeline to address cloud and shadow detection. 
+MADOS consists of realistic observations recorded under diverse 
+weather conditions aiming to support real-world applications ( Fig. 2 ). 
+However, due to this diversity as well as due to S2 specifications our data 
+Table 3 
+MADOS Thematic Classes. Per-class description, acronym, number of image patches and corresponding annotated pixels.  
+# Class Name Acronym Description # of patches (240x240) # of pixels 
+1 Marine Debris MD Floating plastics, mixed anthropogenic debris 472 4696 
+2 Oil spill Oil Oil types including crude oil, emulsified, oil on water, metallic, sheen & rainbow 361 234,568 
+3 Dense Sargassum DenS Dense floating Sargassum macroalgae 77 4308 
+4 Sparse Floating Algae SpFA Sparse Sargassum & other macroalgae 157 4972 
+5 Natural Organic Material NatM Vegetation & Wood 92 1454 
+6 Ship Ship Sailing & Anchored Vessels 298 13,222 
+7 Marine Water MWater Clear Water & sea state Look-alikes 1360 496,702 
+8 Sediment-Laden Water SLWater High-Sediment river discharges with brown colour 57 376,061 
+9 Foam Foam Foam recorded at river fronts or coastal wave breaking area 58 1225 
+10 Turbid Water TWater Turbid waters close to coastal areas 232 170,306 
+11 Shallow Water SWater Coastal waters, including coral reefs and submerged vegetation 140 122,753 
+12 Waves & Wakes Waves Waves & Ship Wakes 224 20,374 
+13 Oil Platform OilPlat Offshore Oil Platform 348 15,701 
+14 Jellyfish Jellyfish Jellyfish 12 2541 
+15 Sea snot Sea snot Sea snot/ mucilage 63 12,272  
+Total   2803 1,481,155  
+Fig. 1. The globally distributed Sentinel-2 tiles from which MADOS data were sampled.  
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+
+===== PAGE 6 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+44
+Fig. 2. An overview of MADOS provided patches. Marine pollutants and Sea surface features were annotated under various weather and sea state conditions.  
+K. Kikaki et al.                                                                                                                                                                                                                                  
+
+===== PAGE 7 =====
+ISPRS Journal of Photogrammetry and Remote Sensing 210 (2024) 39–54
+45
+do not represent spectral endmembers. 
+From this point in the paper, we will use the acronyms presented in 
+Table 3 . The Table defines these acronyms to facilitate clarity 
+throughout the text. Overall, MADOS consists of 1,481,155 annotated 
+pixels composed of 4696 MD pixels and 234,568 Oil pixels, corre -
+sponding to 469600 m
+2 
+and 23456800 m
+2 
+areas, respectively. Addi -
+tionally, 2803 image patches are offered, each one covering 2.4x2.4 
+km
+2
+. In Table 3 , we observe that in MADOS, the distribution of samples 
+per class at the pixel- or patch-level is not uniform. As expected, water- 
+related classes can be found and digitized to a significantly larger extent 
+than the usually small floating objects like floating plastics. Specifically, 
+the class MWater has been annotated in 1360 patches, while the second- 
+highest number of 472 patches was MD and the third-highest number of 
+361 patches was Oil . The considerable amount of annotated images in -
+dicates the high diversity of annotated Oil and MD pollutants. On the 
+other hand, Jellyfish and NatM are the least annotated classes. For these 
+classes, a limited number of reports containing sufficiently large quan -
+tities capable of being identified in S2 satellite images were collected. 

@@ -148,10 +148,11 @@ Marine_dataset/
 
 ### MARIDA Dataset
 - **Source**: Marine Debris Archive for Deep Learning
-- **Sensor**: Sentinel-2 Multispectral Imagery
-- **Bands**: 11 bands (Blue, Green, Red, NIR, SWIR1, SWIR2, etc.)
-- **Resolution**: Various (resampled to 256x256)
-- **Classes**: Multiple marine debris types
+- **Sensor**: Sentinel-2 Multispectral Imagery (L2A, surface reflectance)
+- **Bands**: 11 bands (B1-B12 excluding B10), 60m/20m/10m original GSD, all resampled by MARIDA authors to a single 10m grid in each patch
+- **Patch size**: 256×256 (native, as published by MARIDA) — NOT resampled by us
+- **Training `imgsz`**: `imgsz=512` / `imgsz=1024` is letterbox up-sampling inside the YOLO data pipeline, not a higher-resolution sensor input
+- **Classes**: 15 raw segmentation classes; we map to either 7-class YOLO (v1, paper main line) or 3-class detection (v2, parked)
 
 ### Output Format
 - **Images**: GeoTIFF (.tif) or PNG (.png)
@@ -182,17 +183,34 @@ All 8 band configurations tested with **100% success rate**:
 
 See `multispectral_verification/` for detailed reports.
 
-### Current SOTA (Major Classes)
+### v1 7ch Oracle Baseline (Historical Reference)
+
+> **⚠️ Oracle / Privileged-Information Result.** The 7th channel of this
+> model is a GT-derived distance-transform heatmap (see
+> `scripts/preprocessing/preprocess_generate_knowledge_channel.py`). At
+> validation/test time the model still receives that GT-derived channel,
+> so the numbers below are an **upper bound under privileged input**, not
+> a deployable detection result. With the heatmap zeroed at eval, the
+> same checkpoint collapses to mAP50 ≈ 0.06. Quote this as an oracle
+> teacher / upper bound only — never as a clean Sentinel-2 baseline.
+> Full audit: [docs/paper/7CH_BASELINE_CURRENT_AUDIT_2026-05-18.md](docs/paper/7CH_BASELINE_CURRENT_AUDIT_2026-05-18.md).
 
 | Item | Details |
 | --- | --- |
-| **Checkpoint** | `runs_marida/yolov11n_7ch_512_finetune_wakeboost/weights/best.pt` |
+| **Checkpoint** | `experiments/runs/runs_marida/yolov11n_7ch_512_finetune_wakeboost/weights/best.pt` |
+| **Checkpoint SHA256** | `74e841801a4d0e7b884751c7dbeb1824013899a0ae754b9dbc47d7667f282468` |
 | **Training setup** | imgsz 512, 30 epochs, lr0 5e-4 → cosine decay, mosaic disabled, translate 0.05, scale 0.2, erasing 0.2, `MASKRESCUE_CLASS_BALANCE_POWER=1.3` |
-| **Validation pipeline** | `tools/run_val_with_outputs.py` + `tools/plot_publication_metrics.py` (MaskRescue dataset builder, val split 235 GT boxes) |
-| **Best threshold** | 0.53 |
-| **Metrics @ IoU 0.5** | Precision 0.826 · Recall 0.787 · F1 0.806 |
+| **Validation pipeline** | `scripts/v1_reproduce_7ch_baseline.py` (pins YAML, channel_stats, loader, CWD, checkpoint SHA) |
+| **Publication F1** | Precision 0.826 · Recall 0.787 · F1 0.806 @ IoU 0.5 (best threshold 0.53; major-class only) |
+| **`model.val()` on val split** | mAP50 0.524 · mAP50-95 0.265 (reproduced 2026-05-18 within 1% of audit) |
 
-This run (`yolov11n_7ch_512_finetune_wakeboost`) is **Current SOTA (Major Classes)** and should be referenced for publication-ready results.
+Reproduce:
+
+```bash
+KMP_DUPLICATE_LIB_OK=TRUE \
+  "D:/OceanEdge_Group/Text/miniconda3/envs/yolo_gpu/python.exe" \
+  scripts/v1_reproduce_7ch_baseline.py --split val
+```
 
 ## 📝 Documentation
 

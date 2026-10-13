@@ -1,0 +1,38 @@
+# v1 7ch tiles resplit by v2 scene-clean rule.
+#
+# Why this exists
+# ---------------
+# v1 SOTA training had scene-level overlap between train/val/test
+# (43+26+25 shared scenes). v2 uses a scene-level split. Reusing
+# v2's scene assignment over the v1 7ch tile pool removes scene leak.
+# All 59 v1 scenes fall into v2 splits with 0 cross-split leakage.
+#
+# Notes
+# -----
+# - Tile pool: 514 real v1 tiles (aug_mosaic excluded; the offline
+#   mosaic pool is not regenerated under the new split).
+# - Labels are v1's original 7-class labels (different annotation
+#   source than v2's 3-class labels -- do not directly compare to
+#   v2 6ch baseline numbers).
+# - channels=7 includes the GT-derived heatmap (oracle).
+#
+# See docs/paper/7CH_BASELINE_CURRENT_AUDIT_2026-05-18.md for context.
+
+path: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/mask_bbox_rescue_split
+train: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/mask_bbox_rescue_split_v2split/train.txt
+val: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/mask_bbox_rescue_split_v2split/val.txt
+test: D:/OceanEdge_Group/Marine-Debris-Detection-main/data/processed/mask_bbox_rescue_split_v2split/test.txt
+
+nc: 7
+names:
+  - Marine_Debris
+  - Dense_Sargassum
+  - Sparse_Sargassum
+  - Natural_Organic
+  - Ship
+  - Foam
+  - Wakes
+channels: 7
+
+task: detect
+mode: train
