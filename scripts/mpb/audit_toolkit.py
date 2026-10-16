@@ -135,7 +135,10 @@ def paired_scene_swap(ledgers_a: list[dict], ledgers_b: list[dict], n_mc: int = 
     else:
         rng = np.random.default_rng(seed)
         null = np.array([stat(rng.integers(0, 2, k)) for _ in range(n_mc)])
-    p = float((np.abs(null) >= abs(obs) - 1e-12).mean())
+    extreme = int(np.count_nonzero(np.abs(null) >= abs(obs) - 1e-12))
+    # Exact enumeration includes the observed allocation; Monte Carlo uses
+    # the plus-one correction so a sampled permutation p-value is never zero.
+    p = extreme / len(null) if k <= exact_max_scenes else (extreme + 1) / (n_mc + 1)
     return obs, p, null
 
 
@@ -162,9 +165,9 @@ def scene_jackknife(ledgers_a: list[dict], ledgers_b: list[dict]):
 
 
 def ci_vs_margin(lo: float, hi: float, margin: float) -> str:
-    """Classify a CI for a difference against a smallest effect of interest."""
+    """Read an interval against a margin; this is not a formal TOST procedure."""
     if -margin <= lo and hi <= margin:
-        return f"equivalent within +/-{margin}"
+        return f"CI contained within +/-{margin} (descriptive; not a TOST test)"
     if lo > margin:
         return f"larger than +{margin}"
     if hi < -margin:
@@ -328,7 +331,7 @@ def _selftest():
     full, jk = scene_jackknife(A, B)
     assert set(jk) == set(scenes)
     assert ci_vs_margin(-0.202, 0.019, 0.05).startswith("inconclusive")
-    assert ci_vs_margin(-0.03, 0.04, 0.05).startswith("equivalent")
+    assert ci_vs_margin(-0.03, 0.04, 0.05).startswith("CI contained")
 
     folds = grouped_scene_folds({f"S{i}": int(rng.integers(0, 20)) for i in range(63)}, k=9)
     assert sum(len(f) for f in folds) == 63 and len(set(itertools.chain(*folds))) == 63

@@ -1,4 +1,9 @@
 # AI coding tool local state
+/.codex_work/
+/.codex/
+/.omc/
+/.workbuddy/
+/.claude/
 .claude/
 .codex/
 .omc/
@@ -62,6 +67,8 @@ celerybeat-schedule
 
 # Environments
 .env
+.env.*
+!.env.example
 .venv
 env/
 venv/
@@ -135,6 +142,8 @@ logs/
 *.temp
 
 # Marine debris project artifacts
+/data/
+/output/
 data/raw/
 data/processed/
 data/cache/

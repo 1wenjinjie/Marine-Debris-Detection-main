@@ -8,13 +8,13 @@ For each fold:
   train = the other 7 folds
 Image .npy and labels are reused in place via ABSOLUTE manifest paths (no copy);
 channel p01/p99 statistics are recomputed from that fold's train split only.
-Trains C6 and C7 with 2 paired seeds, collects out-of-fold (OOF) test predictions,
+Trains C6 and C7 with 3 paired seeds, collects out-of-fold (OOF) test predictions,
 merges them into one 63-scene ledger, and reruns clustered bootstrap, paired
 scene-swap permutation, leave-one-scene jackknife, and margin-based reading.
 
 Modes:
   --smoke   one fold, one seed, 1 epoch, capped patches (writes under *_smoke)
-  default   full 9 folds x 2 seeds x 2 channels = 36 trainings
+  default   full 9 folds x 3 seeds x 2 channels = 54 trainings
 """
 from __future__ import annotations
 
@@ -254,9 +254,86 @@ def run_fold(k, chkey, seed, device, smoke=False):
 # --------------------------------------------------------------------------
 # Merge OOF and run 63-cluster inference
 # --------------------------------------------------------------------------
+def load_validated_oof(seeds, smoke=False):
+    """Validate the full paired inventory before writing any merged outputs."""
+    seeds = tuple(seeds)
+    if not smoke and seeds != FULL_SEEDS:
+        raise RuntimeError(f"Formal OOF requires seeds {FULL_SEEDS}, received {seeds}")
+    folds = tuple(range(1) if smoke else range(9))
+    paths = {
+        (k, ch, seed): OOF_DIR / (
+            f"fold{k}_{ch}" + ("_smoke" if smoke else "") + f"_s{seed}_oof.json")
+        for k in folds for ch in CHDEF for seed in seeds
+    }
+    missing = [p.name for p in paths.values() if not p.is_file()]
+    if missing:
+        raise RuntimeError(
+            f"Incomplete OOF: {len(paths) - len(missing)}/{len(paths)} required files; "
+            f"missing {', '.join(missing)}. No merged or final report written.")
+
+    if not smoke:
+        fold_scenes = [sc for group in FOLDS for sc in group]
+        if len(fold_scenes) != 63 or len(set(fold_scenes)) != 63 or set(fold_scenes) != set(ALL_SCENES):
+            raise RuntimeError("Fold inventory must cover exactly 63 scenes once")
+        if len(STEM_SCENE) != 1381 or sum(SCENE_MIN4.values()) != 212:
+            raise RuntimeError("Source inventory must contain 1381 patches and 212 MIN4 debris GT")
+
+    entries_by_run = {}
+    fold_details = []
+    reference_seed = seeds[0]
+    for k in folds:
+        train_sc, val_sc, test_sc = fold_scene_sets(k)
+        expected_stems = {st for sc in test_sc for st in SCENE_STEMS[sc]}
+        for ch in CHDEF:
+            for seed in seeds:
+                key = (k, ch, seed)
+                entries = rex._read_prediction_ledger(paths[key])
+                by_stem = {e["stem"]: e for e in entries}
+                if len(by_stem) != len(entries) or set(by_stem) != expected_stems:
+                    raise RuntimeError(f"{paths[key].name}: duplicate, missing or extra test patches")
+                for st, e in by_stem.items():
+                    if e["scene"] != STEM_SCENE[st]:
+                        raise RuntimeError(f"{paths[key].name}: incorrect scene for {st}")
+                for sc in test_sc:
+                    count = sum(len(e["ground_truth"]) for e in entries if e["scene"] == sc)
+                    if count != SCENE_MIN4[sc]:
+                        raise RuntimeError(f"{paths[key].name}: GT count for {sc}: {count} != {SCENE_MIN4[sc]}")
+                if key != (k, "c6", reference_seed):
+                    reference = {e["stem"]: e for e in entries_by_run[(k, "c6", reference_seed)]}
+                    for st, e in by_stem.items():
+                        if not np.array_equal(e["ground_truth"], reference[st]["ground_truth"]):
+                            raise RuntimeError(f"{paths[key].name}: GT differs across channels/seeds for {st}")
+                entries_by_run[key] = entries
+        fold_details.append({
+            "fold": k,
+            "splits": {
+                name: {"scenes": sorted(scene_set), "n_scenes": len(scene_set),
+                       "n_patches": sum(len(SCENE_STEMS[sc]) for sc in scene_set),
+                       "n_gt": sum(SCENE_MIN4[sc] for sc in scene_set)}
+                for name, scene_set in (("train", train_sc), ("val", val_sc), ("test", test_sc))
+            },
+        })
+    return entries_by_run, fold_details
+
+
 def merge_and_analyze(seeds, smoke=False):
-    report = {"smoke": smoke, "channels": {}, "contrast_c7_minus_c6": {}}
+    seeds = tuple(seeds)
+    entries_by_run, fold_details = load_validated_oof(seeds, smoke)
+    report = {"smoke": smoke, "channels": {}, "contrast_c7_minus_c6": {},
+              "seeds": list(seeds), "fold_inventory": fold_details,
+              "per_fold_per_seed": []}
     led_by_ch_seed = {ch: [] for ch in CHDEF}
+
+    for detail in fold_details:
+        k = detail["fold"]
+        scenes = detail["splits"]["test"]["scenes"]
+        for seed in seeds:
+            aps = {ch: at.pooled_ap(entries_to_scene_ledger(entries_by_run[(k, ch, seed)]), scenes)
+                   for ch in CHDEF}
+            report["per_fold_per_seed"].append({
+                "fold": k, "seed": seed, "c6_AP": aps["c6"], "c7_AP": aps["c7"],
+                "c7_minus_c6": aps["c7"] - aps["c6"],
+            })
 
     for chkey in CHDEF:
         merged_per_seed = []
@@ -264,9 +341,7 @@ def merge_and_analyze(seeds, smoke=False):
             merged = []
             folds = range(1) if smoke else range(9)
             for k in folds:
-                tag = f"fold{k}_{chkey}" + ("_smoke" if smoke else "")
-                oof_path = OOF_DIR / f"{tag}_s{seed}_oof.json"
-                merged.extend(rex._read_prediction_ledger(oof_path))
+                merged.extend(entries_by_run[(k, chkey, seed)])
             if not smoke:
                 mp = RUNS_CV / f"cv_merged_{chkey}_s{seed}.json"
                 rex._write_prediction_ledger(mp, merged)
@@ -277,7 +352,7 @@ def merge_and_analyze(seeds, smoke=False):
         aps = [at.pooled_ap(lg, scenes) for lg in merged_per_seed]
         report["channels"][chkey] = {
             "n_scenes": len(scenes),
-            "per_seed_AP": [round(a, 4) for a in aps],
+            "per_seed_AP": aps,
             "mean_AP": round(float(np.mean(aps)), 4),
         }
 
@@ -287,8 +362,29 @@ def merge_and_analyze(seeds, smoke=False):
     C6 = led_by_ch_seed["c6"]
     C7 = led_by_ch_seed["c7"]
     scenes = sorted(C6[0])
+    report["integrity"] = {
+        "status": "passed", "n_required_formal_runs": 54,
+        "n_oof_scenes_per_channel_seed": len(scenes),
+        "n_oof_patches_per_channel_seed": sum(d["splits"]["test"]["n_patches"] for d in fold_details),
+        "n_oof_gt_per_channel_seed": sum(d["splits"]["test"]["n_gt"] for d in fold_details),
+        "each_scene_and_patch_tested_once": True, "same_GT_across_channels_and_seeds": True,
+        "smoke_files_excluded": True,
+    }
+    report["inference_scope"] = {
+        "statistic": "Mean across paired seeds of globally pooled OOF AP(C7) - AP(C6); not mean fold AP",
+        "conditioning": "Scene resampling and swaps condition on the 54 fitted models and this fold allocation. Overlapping training sets induce dependence between folds; this is not an unconditional estimate of training or split uncertainty.",
+        "permutation_null": "Model prediction ledgers are exchangeable within each acquisition scene; the same scene swap applies to all paired seeds.",
+        "margin": MARGIN, "margin_status": "Post hoc supplementary reading, not a preregistered equivalence margin",
+        "ci_vs_margin": "Descriptive reading of the 95% bootstrap interval, not a formal TOST equivalence test",
+        "pooled_score_limitation": "OOF pooling ranks confidence scores across separately fitted fold models; fold-specific score calibration can affect pooled AP.",
+    }
+    report["per_seed_pooled_contrast"] = [
+        {"seed": seed, "c6_AP": at.pooled_ap(c6, scenes), "c7_AP": at.pooled_ap(c7, scenes),
+         "c7_minus_c6": at.pooled_ap(c7, scenes) - at.pooled_ap(c6, scenes)}
+        for seed, c6, c7 in zip(seeds, C6, C7)
+    ]
     pt, (lo, hi), _ = at.scene_bootstrap(C7, C6, B=10000, seed=20261012)
-    obs, p_perm, _ = at.paired_scene_swap(C7, C6, B=20000, seed=20261012)
+    obs, p_perm, _ = at.paired_scene_swap(C7, C6, n_mc=20000, seed=20261012)
     full_jk, jk = at.scene_jackknife(C7, C6)
     jk_sorted = sorted(jk.items(), key=lambda kv: kv[1])
     report["contrast_c7_minus_c6"] = {
@@ -296,6 +392,9 @@ def merge_and_analyze(seeds, smoke=False):
         "point": round(pt, 4),
         "ci95": [round(lo, 4), round(hi, 4)],
         "permutation_p_two_sided": round(p_perm, 4),
+        "bootstrap_replicates": 10000,
+        "permutation_mc_draws": 20000,
+        "permutation_p_correction": "(extreme + 1) / (n_mc + 1)",
         "jackknife_full": round(full_jk, 4),
         "jackknife_min": {"scene": jk_sorted[0][0], "diff": round(jk_sorted[0][1], 4)},
         "jackknife_max": {"scene": jk_sorted[-1][0], "diff": round(jk_sorted[-1][1], 4),
