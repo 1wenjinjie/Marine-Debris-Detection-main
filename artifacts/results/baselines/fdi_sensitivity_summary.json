@@ -1,0 +1,110 @@
+{
+  "generated_utc": "2026-10-14T10:01:48+00:00",
+  "script": "scripts/v2_fdi_sensitivity.py",
+  "script_sha256": "d220492290a1fc17e497b1be8c8e8a8e486cc3930a965428a403c9f248346189",
+  "status": "POST HOC sensitivity analysis, added after the primary FDI baseline selected the lowest grid quantile in every fold",
+  "variants": {
+    "ext_grid": "FDI, quantile grid [0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 0.97, 0.98, 0.99, 0.995, 0.998, 0.999, 0.9995, 0.9999]",
+    "water_ctx": "FDI restricted to pixels whose 15x15 local mean NDWI (B3-B8)/(B3+B8) > 0; same grid on retained pixels"
+  },
+  "selection": "per fold, max pooled IoU>=0.5 AP on train+val scenes; ties -> higher t",
+  "checks": {
+    "ext_grid_matches_baseline_rows": 90,
+    "yolo_reference_AP_reproduced": true
+  },
+  "water_context": {
+    "mean_fraction_of_patch_retained": 0.9422717802253519,
+    "fraction_of_gt_box_pixels_retained": 0.9954172236012985
+  },
+  "folds_selected_at_grid_edge": {
+    "ext_grid": [],
+    "water_ctx": []
+  },
+  "results": {
+    "ext_grid": {
+      "metrics": {
+        "iou_0.50": {
+          "pooled_AP": 0.003992387038135232,
+          "fold_mean_AP": 0.016851388450381297,
+          "max_recall": 0.419811320754717,
+          "n_predictions": 21901
+        },
+        "iou_0.10": {
+          "pooled_AP": 0.011980633040898577,
+          "fold_mean_AP": 0.09190432899490729,
+          "max_recall": 0.6745283018867925,
+          "n_predictions": 21901
+        },
+        "center_2px": {
+          "pooled_AP": 0.007262117147386608,
+          "fold_mean_AP": 0.046427938674958015,
+          "max_recall": 0.5424528301886793,
+          "n_predictions": 21901
+        }
+      },
+      "yolo_minus_fdi_iou50": {
+        "c6_minus_fdi": {
+          "point": 0.06803109034641476,
+          "ci95": [
+            0.03273813370861104,
+            0.12604498876923692
+          ],
+          "n_draws_used": 10000
+        },
+        "c7_minus_fdi": {
+          "point": 0.047339487955239824,
+          "ci95": [
+            0.027766029862288454,
+            0.08688424693495916
+          ],
+          "n_draws_used": 10000
+        }
+      }
+    },
+    "water_ctx": {
+      "metrics": {
+        "iou_0.50": {
+          "pooled_AP": 0.009178844014562603,
+          "fold_mean_AP": 0.06087593651535063,
+          "max_recall": 0.42452830188679247,
+          "n_predictions": 5750
+        },
+        "iou_0.10": {
+          "pooled_AP": 0.016136881909686276,
+          "fold_mean_AP": 0.10756873326301117,
+          "max_recall": 0.5424528301886793,
+          "n_predictions": 5750
+        },
+        "center_2px": {
+          "pooled_AP": 0.010532475437307147,
+          "fold_mean_AP": 0.07329705178519472,
+          "max_recall": 0.4528301886792453,
+          "n_predictions": 5750
+        }
+      },
+      "yolo_minus_fdi_iou50": {
+        "c6_minus_fdi": {
+          "point": 0.0628446333699874,
+          "ci95": [
+            0.027817350163002918,
+            0.1209484575893638
+          ],
+          "n_draws_used": 10000
+        },
+        "c7_minus_fdi": {
+          "point": 0.042153030978812456,
+          "ci95": [
+            0.02366583591202393,
+            0.08227420376574174
+          ],
+          "n_draws_used": 10000
+        }
+      }
+    }
+  },
+  "bootstrap": {
+    "replicates": 10000,
+    "seed": 0,
+    "kind": "audit_toolkit.scene_bootstrap, 63 scenes"
+  }
+}

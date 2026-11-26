@@ -1,0 +1,131 @@
+{
+  "generated_utc": "2026-10-14T09:29:17+00:00",
+  "script": "scripts/v2_fdi_baseline.py",
+  "script_sha256": "4b3029449b68e16a3c972be8f08db979a4ace62c638613c431430bb05e4d8184",
+  "protocol": {
+    "folds": "cv_pipeline.FOLDS (grouped_scene_folds seed 20261012); test=k, val=(k+1)%9",
+    "fdi_formula": "B8 - (B6 + (B11 - B6) * (832.8-664.6)/(1613.7-664.6) * 10)",
+    "band_indices_0based": {
+      "B6": 5,
+      "B8": 7,
+      "B11": 9
+    },
+    "detector": "FDI>t, 4-connected, area>=4px, bbox pad 2px clipped, score=max FDI in component, top 300 per patch",
+    "threshold_grid": "quantiles [0.9, 0.95, 0.97, 0.98, 0.99, 0.995, 0.998, 0.999, 0.9995, 0.9999] of train+val FDI pixels (every 8th pixel, label-free)",
+    "selection": "max pooled IoU>=0.5 AP on train+val scenes; ties -> higher t",
+    "matching": "same greedy matcher / 101-point ledger AP as the YOLO OOF analysis; centre-distance matching has no box-size constraint",
+    "note": "FDI responds to all floating matter (Sargassum, ships, foam); no class discrimination, so it is a naive physics baseline"
+  },
+  "checks": {
+    "gt_geometry_rederived_from_cl_tif_identical": true,
+    "n_gt_checked": 212,
+    "fdi_iou50_ledger_identical_to_cv_pipeline": true,
+    "yolo_reference_AP_reproduced": true,
+    "n_nonfinite_fdi_pixels": 95424
+  },
+  "fold_choice": {
+    "0": {
+      "quantile": 0.9,
+      "threshold": 0.024970481172204018,
+      "fit_AP50": 0.004050537961450088
+    },
+    "1": {
+      "quantile": 0.9,
+      "threshold": 0.025130022317171097,
+      "fit_AP50": 0.003648357183197346
+    },
+    "2": {
+      "quantile": 0.9,
+      "threshold": 0.024436071515083313,
+      "fit_AP50": 0.0029025641726296296
+    },
+    "3": {
+      "quantile": 0.9,
+      "threshold": 0.023510633036494255,
+      "fit_AP50": 0.00379030730962508
+    },
+    "4": {
+      "quantile": 0.9,
+      "threshold": 0.02367819845676422,
+      "fit_AP50": 0.004441602700426138
+    },
+    "5": {
+      "quantile": 0.9,
+      "threshold": 0.025945402681827545,
+      "fit_AP50": 0.0036187401876008303
+    },
+    "6": {
+      "quantile": 0.9,
+      "threshold": 0.026464782655239105,
+      "fit_AP50": 0.0045290226616075705
+    },
+    "7": {
+      "quantile": 0.9,
+      "threshold": 0.025205090641975403,
+      "fit_AP50": 0.0037969388665777676
+    },
+    "8": {
+      "quantile": 0.9,
+      "threshold": 0.02489648386836052,
+      "fit_AP50": 0.0042221689503797915
+    }
+  },
+  "fdi_results": {
+    "iou_0.50": {
+      "pooled_AP": 0.003992387038135232,
+      "fold_mean_AP": 0.016851388450381297,
+      "max_recall": 0.419811320754717,
+      "n_predictions": 21901
+    },
+    "iou_0.10": {
+      "pooled_AP": 0.011980633040898577,
+      "fold_mean_AP": 0.09190432899490729,
+      "max_recall": 0.6745283018867925,
+      "n_predictions": 21901
+    },
+    "center_2px": {
+      "pooled_AP": 0.007262117147386608,
+      "fold_mean_AP": 0.046427938674958015,
+      "max_recall": 0.5424528301886793,
+      "n_predictions": 21901
+    }
+  },
+  "yolo_minus_fdi_iou50": {
+    "c6_minus_fdi": {
+      "statistic": "mean over 3 YOLO seeds of pooled AP50(YOLO) - pooled AP50(FDI)",
+      "point": 0.06803109034641476,
+      "ci95": [
+        0.03273813370861104,
+        0.12604498876923692
+      ],
+      "n_draws_used": 10000,
+      "yolo_pooled_AP_mean": 0.07202347738454999,
+      "yolo_fold_mean_AP_mean": 0.1251204397260912,
+      "fold_mean_difference": 0.10826905127570989
+    },
+    "c7_minus_fdi": {
+      "statistic": "mean over 3 YOLO seeds of pooled AP50(YOLO) - pooled AP50(FDI)",
+      "point": 0.047339487955239824,
+      "ci95": [
+        0.027766029862288454,
+        0.08688424693495916
+      ],
+      "n_draws_used": 10000,
+      "yolo_pooled_AP_mean": 0.05133187499337505,
+      "yolo_fold_mean_AP_mean": 0.09875315796914431,
+      "fold_mean_difference": 0.08190176951876302
+    }
+  },
+  "bootstrap": {
+    "replicates": 10000,
+    "seed": 0,
+    "kind": "audit_toolkit.scene_bootstrap over 63 scenes; FDI ledger is deterministic and paired with each YOLO seed"
+  },
+  "outputs": [
+    "summary.json",
+    "fdi_fold_results.csv",
+    "threshold_selection.csv",
+    "cv9_fold_assignment_actual.csv",
+    "fdi_oof.json"
+  ]
+}

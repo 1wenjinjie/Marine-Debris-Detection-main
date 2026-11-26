@@ -1,0 +1,30 @@
+# Python caches & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mpl/
+
+# Datasets, raw imagery, and model checkpoints
+data/
+runs*/
+figures_out/
+scripts/figures/assets/
+*.pt
+*.pth
+*.onnx
+*.tif
+*.tiff
+*.npy
+*.npz
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp

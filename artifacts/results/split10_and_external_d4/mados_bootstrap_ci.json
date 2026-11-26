@@ -1,0 +1,106 @@
+{
+  "bootstrap_replicates": 10000,
+  "bootstrap_seed": 20261015,
+  "variants": {
+    "full": {
+      "n_crops": 728,
+      "n_scenes": 42,
+      "n_gt": 90,
+      "cells": {
+        "full_scene_6ch": {
+          "per_seed_AP": [
+            0.1261,
+            0.1,
+            0.1069
+          ],
+          "mean_AP": 0.111,
+          "ci95": [
+            0.0159,
+            0.2245
+          ],
+          "valid_boot": 10000
+        },
+        "full_scene_ndwi7": {
+          "per_seed_AP": [
+            0.1945,
+            0.2019,
+            0.0917
+          ],
+          "mean_AP": 0.1627,
+          "ci95": [
+            0.0253,
+            0.2952
+          ],
+          "valid_boot": 10000
+        }
+      },
+      "contrasts": {
+        "ndwi7_minus_6ch": {
+          "point": 0.0517,
+          "ci95": [
+            0.0062,
+            0.1006
+          ]
+        }
+      }
+    },
+    "t6_test_vs_marida_trainval": {
+      "n_crops": 525,
+      "n_scenes": 40,
+      "n_gt": 79,
+      "cells": {
+        "full_scene_6ch": {
+          "per_seed_AP": [
+            0.1344,
+            0.1078,
+            0.1111
+          ],
+          "mean_AP": 0.1178,
+          "ci95": [
+            0.0111,
+            0.2422
+          ],
+          "valid_boot": 9936
+        },
+        "full_scene_ndwi7": {
+          "per_seed_AP": [
+            0.2065,
+            0.2036,
+            0.0865
+          ],
+          "mean_AP": 0.1655,
+          "ci95": [
+            0.0163,
+            0.3051
+          ],
+          "valid_boot": 9936
+        }
+      },
+      "contrasts": {
+        "ndwi7_minus_6ch": {
+          "point": 0.0478,
+          "ci95": [
+            0.0007,
+            0.0919
+          ]
+        }
+      }
+    }
+  },
+  "paired_dedup_minus_full": {
+    "full_scene_6ch": {
+      "point": 0.0068,
+      "ci95": [
+        -0.0161,
+        0.0338
+      ]
+    },
+    "full_scene_ndwi7": {
+      "point": 0.0028,
+      "ci95": [
+        -0.023,
+        0.0194
+      ]
+    }
+  }
+}

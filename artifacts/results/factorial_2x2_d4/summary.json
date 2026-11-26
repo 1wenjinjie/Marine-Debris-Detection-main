@@ -1,0 +1,471 @@
+{
+  "plan_path": "runs_mpb\\cv_factorial\\analysis_plan.md",
+  "plan_sha256": "19f865b82b44db2ce00335cd10a8b396b6445b6093183a89c6e191463cd4734e",
+  "script_sha256": "dc501f8bfa5e62db73d02f6bf6b364de1cb7a403d0bc758d6d1637ad0f71d857",
+  "design_sha256": "3385750e53a3a001c356121ac8dd9ae226176b5f40fc0ec2570d8bb947d47d43",
+  "integrity": {
+    "status": "passed",
+    "n_runs": 108,
+    "folds": 9,
+    "cells": [
+      "clean_ndwi",
+      "clean_oracle",
+      "shared_ndwi",
+      "shared_oracle"
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "panel_patches": 705,
+    "same_GT_across_cells_and_seeds": true
+  },
+  "statistic": "Mean across paired seeds of globally pooled OOF debris AP50 (101-point, IoU>=0.5)",
+  "primary_panel_exposed_scenes": {
+    "n_scenes": 63,
+    "n_gt": 128,
+    "cells": {
+      "clean_ndwi": {
+        "per_seed_AP": [
+          0.2353,
+          0.1589,
+          0.1344
+        ],
+        "mean_AP": 0.1762,
+        "ci95": [
+          0.1082,
+          0.2845
+        ]
+      },
+      "clean_oracle": {
+        "per_seed_AP": [
+          0.332,
+          0.4003,
+          0.3397
+        ],
+        "mean_AP": 0.3573,
+        "ci95": [
+          0.2658,
+          0.4799
+        ]
+      },
+      "shared_ndwi": {
+        "per_seed_AP": [
+          0.3205,
+          0.2775,
+          0.2077
+        ],
+        "mean_AP": 0.2686,
+        "ci95": [
+          0.1674,
+          0.3773
+        ]
+      },
+      "shared_oracle": {
+        "per_seed_AP": [
+          0.5047,
+          0.4586,
+          0.4231
+        ],
+        "mean_AP": 0.4621,
+        "ci95": [
+          0.3282,
+          0.6
+        ]
+      }
+    },
+    "contrasts": {
+      "scene_exposure_main_effect": {
+        "point": 0.0986,
+        "ci95": [
+          0.0227,
+          0.1585
+        ],
+        "ci_excludes_zero": true,
+        "ci_vs_margin_0.05": "non-zero but not clearly beyond the margin"
+      },
+      "oracle_prior_main_effect": {
+        "point": 0.1873,
+        "ci95": [
+          0.0885,
+          0.2825
+        ],
+        "ci_excludes_zero": true,
+        "ci_vs_margin_0.05": "larger than +0.05"
+      },
+      "interaction": {
+        "point": 0.0125,
+        "ci95": [
+          -0.1022,
+          0.1173
+        ],
+        "ci_excludes_zero": false,
+        "ci_vs_margin_0.05": "inconclusive (CI includes both 0 and values beyond the margin)"
+      },
+      "exposure_effect_ndwi": {
+        "point": 0.0923,
+        "ci95": [
+          0.0332,
+          0.1376
+        ],
+        "ci_excludes_zero": true,
+        "ci_vs_margin_0.05": "non-zero but not clearly beyond the margin"
+      },
+      "exposure_effect_oracle": {
+        "point": 0.1048,
+        "ci95": [
+          -0.0136,
+          0.2059
+        ],
+        "ci_excludes_zero": false,
+        "ci_vs_margin_0.05": "inconclusive (CI includes both 0 and values beyond the margin)"
+      },
+      "oracle_effect_clean": {
+        "point": 0.1811,
+        "ci95": [
+          0.0847,
+          0.2836
+        ],
+        "ci_excludes_zero": true,
+        "ci_vs_margin_0.05": "larger than +0.05"
+      },
+      "oracle_effect_shared": {
+        "point": 0.1936,
+        "ci95": [
+          0.0704,
+          0.314
+        ],
+        "ci_excludes_zero": true,
+        "ci_vs_margin_0.05": "larger than +0.05"
+      }
+    },
+    "bootstrap_replicates": 10000,
+    "bootstrap_skipped_nan": 0,
+    "bootstrap_seed": 20261015
+  },
+  "secondary_panel_all_scenes": {
+    "n_scenes": 63,
+    "n_gt": 128,
+    "cells": {
+      "clean_ndwi": {
+        "per_seed_AP": [
+          0.2353,
+          0.1589,
+          0.1344
+        ],
+        "mean_AP": 0.1762,
+        "ci95": [
+          0.1082,
+          0.2845
+        ]
+      },
+      "clean_oracle": {
+        "per_seed_AP": [
+          0.332,
+          0.4003,
+          0.3397
+        ],
+        "mean_AP": 0.3573,
+        "ci95": [
+          0.2658,
+          0.4799
+        ]
+      },
+      "shared_ndwi": {
+        "per_seed_AP": [
+          0.3205,
+          0.2775,
+          0.2077
+        ],
+        "mean_AP": 0.2686,
+        "ci95": [
+          0.1674,
+          0.3773
+        ]
+      },
+      "shared_oracle": {
+        "per_seed_AP": [
+          0.5047,
+          0.4586,
+          0.4231
+        ],
+        "mean_AP": 0.4621,
+        "ci95": [
+          0.3282,
+          0.6
+        ]
+      }
+    },
+    "contrasts": {
+      "scene_exposure_main_effect": {
+        "point": 0.0986,
+        "ci95": [
+          0.0227,
+          0.1585
+        ],
+        "ci_excludes_zero": true,
+        "ci_vs_margin_0.05": "non-zero but not clearly beyond the margin"
+      },
+      "oracle_prior_main_effect": {
+        "point": 0.1873,
+        "ci95": [
+          0.0885,
+          0.2825
+        ],
+        "ci_excludes_zero": true,
+        "ci_vs_margin_0.05": "larger than +0.05"
+      },
+      "interaction": {
+        "point": 0.0125,
+        "ci95": [
+          -0.1022,
+          0.1173
+        ],
+        "ci_excludes_zero": false,
+        "ci_vs_margin_0.05": "inconclusive (CI includes both 0 and values beyond the margin)"
+      },
+      "exposure_effect_ndwi": {
+        "point": 0.0923,
+        "ci95": [
+          0.0332,
+          0.1376
+        ],
+        "ci_excludes_zero": true,
+        "ci_vs_margin_0.05": "non-zero but not clearly beyond the margin"
+      },
+      "exposure_effect_oracle": {
+        "point": 0.1048,
+        "ci95": [
+          -0.0136,
+          0.2059
+        ],
+        "ci_excludes_zero": false,
+        "ci_vs_margin_0.05": "inconclusive (CI includes both 0 and values beyond the margin)"
+      },
+      "oracle_effect_clean": {
+        "point": 0.1811,
+        "ci95": [
+          0.0847,
+          0.2836
+        ],
+        "ci_excludes_zero": true,
+        "ci_vs_margin_0.05": "larger than +0.05"
+      },
+      "oracle_effect_shared": {
+        "point": 0.1936,
+        "ci95": [
+          0.0704,
+          0.314
+        ],
+        "ci_excludes_zero": true,
+        "ci_vs_margin_0.05": "larger than +0.05"
+      }
+    },
+    "bootstrap_replicates": 10000,
+    "bootstrap_skipped_nan": 0,
+    "bootstrap_seed": 20261015
+  },
+  "secondary_fold_mean_AP_exposed": {
+    "cells": {
+      "clean_ndwi": 0.2936,
+      "clean_oracle": 0.4658,
+      "shared_ndwi": 0.3368,
+      "shared_oracle": 0.527
+    },
+    "contrasts": {
+      "scene_exposure_main_effect": 0.0522,
+      "oracle_prior_main_effect": 0.1812,
+      "interaction": 0.018,
+      "exposure_effect_ndwi": 0.0432,
+      "exposure_effect_oracle": 0.0612,
+      "oracle_effect_clean": 0.1722,
+      "oracle_effect_shared": 0.1902
+    }
+  },
+  "secondary_jackknife_exposed": {
+    "scene_exposure_main_effect": {
+      "min": {
+        "scene": "S2_4-9-16_16PCC",
+        "value": 0.0703
+      },
+      "max": {
+        "scene": "S2_18-9-20_16PCC",
+        "value": 0.1075
+      }
+    },
+    "oracle_prior_main_effect": {
+      "min": {
+        "scene": "S2_6-12-18_48MXU",
+        "value": 0.1667
+      },
+      "max": {
+        "scene": "S2_4-3-18_50LLR",
+        "value": 0.2111
+      }
+    },
+    "interaction": {
+      "min": {
+        "scene": "S2_4-9-16_16PCC",
+        "value": -0.0341
+      },
+      "max": {
+        "scene": "S2_14-3-20_18QYF",
+        "value": 0.0289
+      }
+    }
+  },
+  "design_summary": [
+    {
+      "fold": 0,
+      "train_patches": 1320,
+      "val_patches": 13,
+      "test_scenes": 1,
+      "exposed_scenes": 1,
+      "single_patch_scenes": 0,
+      "sibling_patches": 24,
+      "sibling_positive_patches": 6,
+      "sibling_md_instances": 31,
+      "removal_md_instances": 29,
+      "panel_patches": 24,
+      "panel_md_instances": 25,
+      "exposed_panel_patches": 24,
+      "exposed_panel_md_instances": 25
+    },
+    {
+      "fold": 1,
+      "train_patches": 1233,
+      "val_patches": 135,
+      "test_scenes": 1,
+      "exposed_scenes": 1,
+      "single_patch_scenes": 0,
+      "sibling_patches": 6,
+      "sibling_positive_patches": 3,
+      "sibling_md_instances": 6,
+      "removal_md_instances": 6,
+      "panel_patches": 7,
+      "panel_md_instances": 17,
+      "exposed_panel_patches": 7,
+      "exposed_panel_md_instances": 17
+    },
+    {
+      "fold": 2,
+      "train_patches": 963,
+      "val_patches": 283,
+      "test_scenes": 9,
+      "exposed_scenes": 9,
+      "single_patch_scenes": 0,
+      "sibling_patches": 66,
+      "sibling_positive_patches": 3,
+      "sibling_md_instances": 8,
+      "removal_md_instances": 8,
+      "panel_patches": 69,
+      "panel_md_instances": 11,
+      "exposed_panel_patches": 69,
+      "exposed_panel_md_instances": 11
+    },
+    {
+      "fold": 3,
+      "train_patches": 865,
+      "val_patches": 233,
+      "test_scenes": 9,
+      "exposed_scenes": 9,
+      "single_patch_scenes": 0,
+      "sibling_patches": 139,
+      "sibling_positive_patches": 5,
+      "sibling_md_instances": 7,
+      "removal_md_instances": 7,
+      "panel_patches": 144,
+      "panel_md_instances": 12,
+      "exposed_panel_patches": 144,
+      "exposed_panel_md_instances": 12
+    },
+    {
+      "fold": 4,
+      "train_patches": 936,
+      "val_patches": 212,
+      "test_scenes": 9,
+      "exposed_scenes": 9,
+      "single_patch_scenes": 0,
+      "sibling_patches": 113,
+      "sibling_positive_patches": 4,
+      "sibling_md_instances": 9,
+      "removal_md_instances": 9,
+      "panel_patches": 120,
+      "panel_md_instances": 10,
+      "exposed_panel_patches": 120,
+      "exposed_panel_md_instances": 10
+    },
+    {
+      "fold": 5,
+      "train_patches": 939,
+      "val_patches": 230,
+      "test_scenes": 9,
+      "exposed_scenes": 9,
+      "single_patch_scenes": 0,
+      "sibling_patches": 104,
+      "sibling_positive_patches": 2,
+      "sibling_md_instances": 13,
+      "removal_md_instances": 13,
+      "panel_patches": 108,
+      "panel_md_instances": 6,
+      "exposed_panel_patches": 108,
+      "exposed_panel_md_instances": 6
+    },
+    {
+      "fold": 6,
+      "train_patches": 1058,
+      "val_patches": 93,
+      "test_scenes": 9,
+      "exposed_scenes": 9,
+      "single_patch_scenes": 0,
+      "sibling_patches": 114,
+      "sibling_positive_patches": 2,
+      "sibling_md_instances": 4,
+      "removal_md_instances": 4,
+      "panel_patches": 116,
+      "panel_md_instances": 15,
+      "exposed_panel_patches": 116,
+      "exposed_panel_md_instances": 15
+    },
+    {
+      "fold": 7,
+      "train_patches": 1154,
+      "val_patches": 134,
+      "test_scenes": 8,
+      "exposed_scenes": 8,
+      "single_patch_scenes": 0,
+      "sibling_patches": 44,
+      "sibling_positive_patches": 2,
+      "sibling_md_instances": 3,
+      "removal_md_instances": 3,
+      "panel_patches": 49,
+      "panel_md_instances": 16,
+      "exposed_panel_patches": 49,
+      "exposed_panel_md_instances": 16
+    },
+    {
+      "fold": 8,
+      "train_patches": 1199,
+      "val_patches": 48,
+      "test_scenes": 8,
+      "exposed_scenes": 8,
+      "single_patch_scenes": 0,
+      "sibling_patches": 66,
+      "sibling_positive_patches": 3,
+      "sibling_md_instances": 3,
+      "removal_md_instances": 3,
+      "panel_patches": 68,
+      "panel_md_instances": 16,
+      "exposed_panel_patches": 68,
+      "exposed_panel_md_instances": 16
+    }
+  ],
+  "historical_single_split_reference": {
+    "source": "runs_mpb/paired_contrasts_all.json factorial point estimates (v1 7-class audit)",
+    "scene_exposure_main_effect": 0.0227,
+    "oracle_prior_main_effect": 0.4183,
+    "interaction": -0.0847
+  },
+  "conditioning": "Scene resampling conditions on the fitted models and this fold allocation; pooled AP ranks scores across separately fitted fold models."
+}

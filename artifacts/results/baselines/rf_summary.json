@@ -1,0 +1,223 @@
+{
+  "generated_utc": "2026-10-16T02:40:37+00:00",
+  "script": "scripts/v2_rf_baseline.py",
+  "protocol": {
+    "script_sha256": "bd9e22c7cc5d10f700d8e76473f631ed3b414f8ab0414e9decaad021feb3cb6e",
+    "fdi_helper_sha256": "4b3029449b68e16a3c972be8f08db979a4ace62c638613c431430bb05e4d8184",
+    "sklearn_version": "1.9.0",
+    "rf_params": {
+      "n_estimators": 125,
+      "criterion": "gini",
+      "max_depth": 20,
+      "min_samples_leaf": 1,
+      "min_impurity_decrease": 0.0,
+      "class_weight": "balanced_subsample",
+      "oob_score": false
+    },
+    "rf_random_state": "run seed",
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "features": [
+      "nm440",
+      "nm490",
+      "nm560",
+      "nm665",
+      "nm705",
+      "nm740",
+      "nm783",
+      "nm842",
+      "nm865",
+      "nm1600",
+      "nm2200",
+      "NDVI",
+      "FAI",
+      "FDI",
+      "SI",
+      "NDWI",
+      "NRD",
+      "NDMI",
+      "BSI"
+    ],
+    "agg_to_water": {
+      "12": 7,
+      "13": 7,
+      "14": 7,
+      "15": 7
+    },
+    "sample_weight": "1/conf (_conf.tif 1/2/3)",
+    "thresholds": [
+      0.05,
+      0.1,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.6,
+      0.7,
+      0.8,
+      0.9,
+      0.95,
+      0.97,
+      0.98,
+      0.99
+    ],
+    "max_det": 300,
+    "train_pixels": "all _cl>0 pixels of train scenes",
+    "threshold_selection": "max pooled IoU>=0.5 AP on val scenes; ties -> higher t"
+  },
+  "checks": {
+    "gt_geometry_rederived_from_cl_tif_identical": true,
+    "n_gt_checked": 212,
+    "rf_iou50_ledger_identical_to_cv_pipeline": true,
+    "yolo_reference_AP_reproduced": true,
+    "n_annotated_pixels": 837377
+  },
+  "rf_results": {
+    "iou_0.50": [
+      {
+        "seed": 0,
+        "pooled_AP": 0.08633227408740152,
+        "fold_mean_AP": 0.10871978670218345,
+        "max_recall": 0.35377358490566035,
+        "n_predictions": 584
+      },
+      {
+        "seed": 1,
+        "pooled_AP": 0.0837716065510405,
+        "fold_mean_AP": 0.11078196867578677,
+        "max_recall": 0.2641509433962264,
+        "n_predictions": 500
+      },
+      {
+        "seed": 2,
+        "pooled_AP": 0.0817441644829238,
+        "fold_mean_AP": 0.11292246414956307,
+        "max_recall": 0.3632075471698113,
+        "n_predictions": 847
+      }
+    ],
+    "iou_0.10": [
+      {
+        "seed": 0,
+        "pooled_AP": 0.1785722868327108,
+        "fold_mean_AP": 0.2275179422556947,
+        "max_recall": 0.4716981132075472,
+        "n_predictions": 584
+      },
+      {
+        "seed": 1,
+        "pooled_AP": 0.14762392829590174,
+        "fold_mean_AP": 0.210170024244139,
+        "max_recall": 0.33962264150943394,
+        "n_predictions": 500
+      },
+      {
+        "seed": 2,
+        "pooled_AP": 0.17616813689753671,
+        "fold_mean_AP": 0.2261371962040665,
+        "max_recall": 0.5,
+        "n_predictions": 847
+      }
+    ],
+    "center_2px": [
+      {
+        "seed": 0,
+        "pooled_AP": 0.10557666056593966,
+        "fold_mean_AP": 0.14347445340347886,
+        "max_recall": 0.3867924528301887,
+        "n_predictions": 584
+      },
+      {
+        "seed": 1,
+        "pooled_AP": 0.10736172005842737,
+        "fold_mean_AP": 0.14652728404981502,
+        "max_recall": 0.29245283018867924,
+        "n_predictions": 500
+      },
+      {
+        "seed": 2,
+        "pooled_AP": 0.09817461356927012,
+        "fold_mean_AP": 0.1340790869490277,
+        "max_recall": 0.3915094339622642,
+        "n_predictions": 847
+      }
+    ]
+  },
+  "rf_mean": {
+    "iou_0.50": {
+      "pooled_AP": 0.0839493483737886,
+      "fold_mean_AP": 0.11080807317584444
+    },
+    "iou_0.10": {
+      "pooled_AP": 0.1674547840087164,
+      "fold_mean_AP": 0.22127505423463337
+    },
+    "center_2px": {
+      "pooled_AP": 0.10370433139787905,
+      "fold_mean_AP": 0.14136027480077387
+    }
+  },
+  "pixel_level_debris_on_annotated_test_pixels_argmax": {
+    "0": {
+      "tp": 2845,
+      "fp": 1293,
+      "fn": 554,
+      "precision": 0.6875302078298695,
+      "recall": 0.8370108855545749,
+      "f1": 0.7549422847286719,
+      "iou": 0.6063512361466326
+    },
+    "1": {
+      "tp": 2841,
+      "fp": 1383,
+      "fn": 558,
+      "precision": 0.6725852272727273,
+      "recall": 0.8358340688437775,
+      "f1": 0.7453758362849272,
+      "iou": 0.5941028858218319
+    },
+    "2": {
+      "tp": 2852,
+      "fp": 1375,
+      "fn": 547,
+      "precision": 0.6747101963567542,
+      "recall": 0.8390703147984702,
+      "f1": 0.7479674796747967,
+      "iou": 0.5974025974025974
+    }
+  },
+  "yolo_minus_rf_iou50": {
+    "c6_minus_rf": {
+      "statistic": "mean over 3 paired seeds of pooled AP50(YOLO) - pooled AP50(RF)",
+      "point": -0.011925870989238615,
+      "ci95": [
+        -0.06380383149978887,
+        0.04712752821254701
+      ],
+      "n_draws_used": 10000,
+      "yolo_pooled_AP_mean": 0.07202347738454999
+    },
+    "c7_minus_rf": {
+      "statistic": "mean over 3 paired seeds of pooled AP50(YOLO) - pooled AP50(RF)",
+      "point": -0.03261747338041355,
+      "ci95": [
+        -0.08388747617905327,
+        0.023036285425806005
+      ],
+      "n_draws_used": 10000,
+      "yolo_pooled_AP_mean": 0.05133187499337505
+    }
+  },
+  "bootstrap": {
+    "replicates": 10000,
+    "seed": 0,
+    "kind": "audit_toolkit.scene_bootstrap over 63 scenes, YOLO seed i paired with RF seed i"
+  },
+  "notes": [
+    "GLCM texture features of the official MARIDA RF are omitted",
+    "threshold chosen on val scenes only; RF never sees val/test pixels in fit"
+  ]
+}

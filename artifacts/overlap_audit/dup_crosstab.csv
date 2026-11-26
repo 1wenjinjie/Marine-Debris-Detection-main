@@ -1,0 +1,10 @@
+mados_split,marida_split,same_acq_pairs,same_acq_mados_crops,same_acq_marida_patches,mados_md_min4_boxes,mados_md_pixels,marida_md_min4_boxes,marida_md_pixels,mados_window_px,mados_total_patch_px,marida_window_px,marida_total_patch_px,pooled_px_intersection,pooled_px_union,pooled_px_iou,mados_components_touched,mados_components_hit_marida,marida_components_touched,marida_components_hit_mados,spatial_pairs_false,spatial_pairs_undetermined,spatial_unique_mados_crops,spatial_unique_marida_patches
+train,train,527,436,395,75,1083,74,1083,15192104,25113600,15218712,25886720,1083,1083,1.0,76,76,74,74,8,1,440,401
+train,val,81,67,65,3,75,3,75,2263044,3859200,2251244,4259840,75,75,1.0,3,3,3,3,0,0,67,65
+train,test,63,52,47,9,74,10,74,1817644,2995200,1817644,3080192,74,74,1.0,9,9,10,10,0,0,52,47
+val,train,241,199,178,12,298,12,298,6540828,11462400,6564324,11665408,298,298,1.0,13,13,12,12,4,1,200,183
+val,val,36,28,26,9,105,9,105,914920,1612800,914920,1703936,105,105,1.0,9,9,9,9,0,0,28,26
+val,test,42,36,35,8,150,8,150,1159092,2073600,1159092,2293760,150,150,1.0,8,8,8,8,1,0,37,36
+test,train,185,155,148,10,194,10,194,5132668,8928000,5132668,9699328,194,194,1.0,10,10,10,10,4,0,158,151
+test,val,53,48,44,1,39,1,39,1508640,2764800,1508640,2883584,39,39,1.0,1,1,1,1,0,0,48,44
+test,test,100,79,77,1,60,1,60,3031384,4550400,3031384,5046272,60,60,1.0,1,1,1,1,0,0,79,77
